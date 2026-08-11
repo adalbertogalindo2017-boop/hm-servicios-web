@@ -1,0 +1,972 @@
+/* ============================================================
+   H&M SISTEMA ADMINISTRATIVO — ESTILOS RESPONSIVOS
+   Archivo: responsive.css
+   Descripción: Adaptaciones de diseño para diferentes tamaños
+   de pantalla, comportamiento móvil del sidebar, hamburguesa
+   animada, tablas con scroll y estilos de impresión.
+   Autor: Equipo de Desarrollo H&M SENA
+   Fecha: 2026
+   ============================================================ */
+
+
+/* ============================================================
+   1. OVERLAY DEL SIDEBAR MÓVIL
+   Capa semitransparente detrás del sidebar cuando se abre
+   en pantallas pequeñas. Solo visible en dispositivos móviles.
+   ============================================================ */
+
+/* Overlay oscuro para sidebar en móvil */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+
+/* Overlay visible cuando el sidebar está abierto */
+.sidebar-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+/* ============================================================
+   2. BOTÓN DE HAMBURGUESA
+   Icono de tres líneas animado que aparece en móvil para
+   abrir y cerrar el sidebar lateral.
+   ============================================================ */
+
+/* Botón de hamburguesa — oculto en escritorio */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.3s ease;
+  z-index: 1001;
+  position: relative;
+}
+
+.hamburger-btn:hover {
+  background: var(--bg-main);
+}
+
+/* Líneas del icono de hamburguesa */
+.hamburger-btn .bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+}
+
+/* Posición de las tres líneas */
+.hamburger-btn .bar:nth-child(1) {
+  top: 12px;
+}
+
+.hamburger-btn .bar:nth-child(2) {
+  top: 19px;
+}
+
+.hamburger-btn .bar:nth-child(3) {
+  top: 26px;
+}
+
+/* Animación de las líneas al estado "X" (cerrar) */
+.hamburger-btn.active .bar:nth-child(1) {
+  top: 19px;
+  transform: rotate(45deg);
+}
+
+.hamburger-btn.active .bar:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.hamburger-btn.active .bar:nth-child(3) {
+  top: 19px;
+  transform: rotate(-45deg);
+}
+
+
+/* ============================================================
+   3. BREAKPOINT: max-width 1400px
+   Pantallas grandes pero no ultra-anchas. Reducimos el
+   ancho del sidebar ligeramente.
+   ============================================================ */
+
+@media (max-width: 1400px) {
+  /* Reducir ancho del sidebar a 260px */
+  :root {
+    --sidebar-width: 260px;
+  }
+
+  /* Reducir padding del contenido */
+  .main-content {
+    padding: 20px 24px 36px;
+  }
+
+  /* Reducir gap en la cuadrícula de KPIs */
+  .kpi-grid {
+    gap: 16px;
+  }
+
+  /* Reducir padding en las tarjetas KPI */
+  .kpi-card {
+    padding: 18px;
+  }
+
+  /* Reducir el valor numérico del KPI */
+  .kpi-card .kpi-value {
+    font-size: 1.5rem;
+  }
+
+  /* Ajustar barra de búsqueda */
+  .search-bar input {
+    width: 200px;
+  }
+
+  .search-bar input:focus {
+    width: 260px;
+  }
+
+  /* Reducir padding del header */
+  .top-header {
+    padding: 12px 24px;
+  }
+
+  /* Cuadrícula de características del landing a 3 columnas con menos gap */
+  .features-grid {
+    gap: 20px;
+  }
+}
+
+
+/* ============================================================
+   4. BREAKPOINT: max-width 1200px
+   Pantallas medianas-grandes. Reducimos KPIs a 2 columnas
+   y ajustamos la cuadrícula de características.
+   ============================================================ */
+
+@media (max-width: 1200px) {
+  /* KPI grid pasa a 2 columnas */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Cuadrícula de estadísticas del landing */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  /* Cuadrícula de características del landing a 2 columnas */
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Reducir título del hero */
+  .landing-hero h1 {
+    font-size: 2.5rem;
+  }
+
+  /* Filas de formulario de 3 columnas pasan a 2 */
+  .form-row-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Ajustar gráfico de barras */
+  .bar-chart {
+    height: 180px;
+  }
+
+  /* Ajustar gráfico de dona */
+  .donut-chart {
+    width: 160px;
+    height: 160px;
+  }
+
+  .donut-chart::after {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+
+/* ============================================================
+   5. BREAKPOINT: max-width 992px (TABLET)
+   El sidebar se convierte en off-canvas. Aparece el botón
+   de hamburguesa y el contenido ocupa todo el ancho.
+   ============================================================ */
+
+@media (max-width: 992px) {
+  /* Sidebar se oculta fuera de la pantalla */
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  /* Sidebar visible cuando tiene clase .open */
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.3);
+  }
+
+  /* El contenido principal ocupa todo el ancho */
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  /* Mostrar botón de hamburguesa */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* Ajustar header izquierdo para incluir hamburguesa */
+  .header-left {
+    gap: 12px;
+  }
+
+  /* Reducir ancho de búsqueda */
+  .search-bar input {
+    width: 180px;
+  }
+
+  .search-bar input:focus {
+    width: 220px;
+  }
+
+  /* Ajustar padding del contenido */
+  .main-content {
+    padding: 20px 20px 32px;
+  }
+
+  /* Reducir padding en tarjetas */
+  .card {
+    padding: 20px;
+  }
+
+  /* KPI grid sigue en 2 columnas */
+  .kpi-grid {
+    gap: 14px;
+  }
+
+  /* Filas de formulario a 1 columna */
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ajustar tabs para scroll horizontal */
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Cuadrícula de características a 2 columnas */
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 20px;
+  }
+
+  /* Sección de características */
+  .landing-features {
+    padding: 60px 20px;
+  }
+
+  /* Hero más compacto */
+  .landing-hero {
+    padding: 40px 20px;
+  }
+
+  .landing-hero h1 {
+    font-size: 2.2rem;
+  }
+
+  /* Tarjeta de login más compacta */
+  .login-card {
+    padding: 32px 28px;
+  }
+
+  /* Modal se ajusta al ancho disponible */
+  .modal {
+    width: 92%;
+    margin: 0 auto;
+  }
+
+  .modal-lg {
+    max-width: 92%;
+  }
+
+  /* Tabla toolbar se apila */
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-toolbar .toolbar-left,
+  .table-toolbar .toolbar-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+
+/* ============================================================
+   6. BREAKPOINT: max-width 768px (MÓVIL GRANDE)
+   Apilar filas de formulario, reducir padding, tabla con
+   scroll horizontal y ajustes generales de espacio.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Reducir tamaño base de fuente */
+  html {
+    font-size: 15px;
+  }
+
+  /* Apilar filas de formulario a 1 columna */
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Reducir padding general */
+  .main-content {
+    padding: 16px 16px 28px;
+  }
+
+  /* Header más compacto */
+  .top-header {
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Ocultar nombre de usuario en dropdown del header */
+  .user-dropdown .user-name {
+    display: none;
+  }
+
+  /* Reducir tamaño de búsqueda */
+  .search-bar input {
+    width: 160px;
+    padding: 8px 14px 8px 36px;
+    font-size: 0.82rem;
+  }
+
+  .search-bar input:focus {
+    width: 190px;
+  }
+
+  /* Tarjetas más compactas */
+  .card {
+    padding: 16px;
+    border-radius: var(--radius);
+  }
+
+  /* KPI ajustes */
+  .kpi-card {
+    padding: 16px;
+  }
+
+  .kpi-card .kpi-value {
+    font-size: 1.35rem;
+  }
+
+  .kpi-card .kpi-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+
+  /* Tabla con scroll horizontal */
+  .table-responsive {
+    margin: 0 -16px;
+    padding: 0 16px;
+    border-radius: 0;
+  }
+
+  .data-table {
+    min-width: 600px;
+  }
+
+  /* Reducir padding de celdas de tabla */
+  .data-table th {
+    padding: 12px 12px;
+    font-size: 0.75rem;
+  }
+
+  .data-table td {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+
+  /* Paginación más compacta */
+  .pagination .page-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.78rem;
+  }
+
+  /* Breadcrumb más compacto */
+  .breadcrumb {
+    font-size: 0.82rem;
+  }
+
+  /* Título de página más pequeño */
+  .page-title {
+    font-size: 1.15rem;
+  }
+
+  /* Toasts más estrechos */
+  .toast {
+    min-width: auto;
+    max-width: 340px;
+    right: 12px;
+  }
+
+  .toast-container {
+    right: 12px;
+    left: 12px;
+  }
+
+  /* Modal */
+  .modal {
+    width: 95%;
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  .modal-footer {
+    padding: 14px 20px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Landing hero */
+  .landing-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .landing-hero p {
+    font-size: 0.95rem;
+  }
+
+  .landing-hero .hero-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Características a 1 columna */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Estadísticas a 2 columnas */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .stat-item .stat-value {
+    font-size: 2rem;
+  }
+
+  /* Login card */
+  .login-card {
+    padding: 28px 24px;
+    max-width: 100%;
+  }
+
+  /* Tabs más compactos */
+  .tab-item {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  /* Gráficos más compactos */
+  .bar-chart {
+    height: 150px;
+    gap: 4px;
+  }
+
+  .donut-chart {
+    width: 140px;
+    height: 140px;
+  }
+
+  .donut-chart::after {
+    width: 84px;
+    height: 84px;
+  }
+
+  .donut-chart .donut-value {
+    font-size: 1.2rem;
+  }
+
+  /* Acciones del header más compactas */
+  .header-actions {
+    gap: 8px;
+  }
+
+  /* Botón de notificación más pequeño */
+  .notification-bell {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+}
+
+
+/* ============================================================
+   7. BREAKPOINT: max-width 576px (MÓVIL PEQUEÑO)
+   KPIs de una sola columna, header ultra compacto,
+   reducción máxima de tamaños de fuente.
+   ============================================================ */
+
+@media (max-width: 576px) {
+  /* Tamaño de fuente aún más reducido */
+  html {
+    font-size: 14px;
+  }
+
+  /* KPIs a 1 sola columna */
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Header ultra compacto */
+  .top-header {
+    padding: 8px 12px;
+    min-height: 52px;
+  }
+
+  /* Ocultar texto de migas de pan en móvil muy pequeño */
+  .breadcrumb {
+    display: none;
+  }
+
+  /* Contenido con padding mínimo */
+  .main-content {
+    padding: 12px 12px 24px;
+  }
+
+  /* Búsqueda minimalista */
+  .search-bar input {
+    width: 120px;
+    padding: 8px 12px 8px 32px;
+  }
+
+  .search-bar input:focus {
+    width: 160px;
+  }
+
+  .search-bar i {
+    left: 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Tarjetas con padding mínimo */
+  .card {
+    padding: 14px;
+  }
+
+  /* KPI card en formato compacto */
+  .kpi-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .kpi-card .kpi-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .kpi-card .kpi-value {
+    font-size: 1.25rem;
+  }
+
+  /* Encabezados más pequeños */
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.15rem; }
+
+  .page-title {
+    font-size: 1.05rem;
+  }
+
+  /* Tabla mínima */
+  .data-table {
+    min-width: 500px;
+  }
+
+  /* Botones más compactos */
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.82rem;
+  }
+
+  .btn-lg {
+    padding: 12px 24px;
+    font-size: 0.92rem;
+  }
+
+  /* Modal pantalla completa en móvil muy pequeño */
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: var(--radius) var(--radius) 0 0;
+    max-height: 95vh;
+    margin: auto 0 0 0;
+  }
+
+  .modal-footer .btn {
+    flex: 1;
+  }
+
+  /* Estadísticas a 1 columna */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* Login ajustes */
+  .login-card {
+    padding: 24px 20px;
+    border-radius: var(--radius);
+  }
+
+  .login-logo .logo-icon {
+    width: 52px;
+    height: 52px;
+    font-size: 1.3rem;
+  }
+
+  .login-logo .logo-brand {
+    font-size: 1.3rem;
+  }
+
+  .login-title {
+    font-size: 1.1rem;
+  }
+
+  /* Acciones del header */
+  .header-actions {
+    gap: 4px;
+  }
+
+  /* Toast pantalla completa */
+  .toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .toast {
+    min-width: auto;
+    max-width: 100%;
+  }
+
+  /* Footer del sidebar */
+  .sidebar-footer .user-name {
+    font-size: 0.78rem;
+  }
+
+  .sidebar-footer .user-role {
+    font-size: 0.68rem;
+  }
+
+  /* Botón de hamburguesa ligeramente más pequeño */
+  .hamburger-btn {
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+  }
+
+  .hamburger-btn .bar {
+    width: 20px;
+  }
+
+  /* Opciones de login apiladas */
+  .login-options {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  /* Ocultar chevron del dropdown en móvil pequeño */
+  .user-dropdown .chevron {
+    display: none;
+  }
+
+  /* Dropdown pegado al borde derecho */
+  .dropdown-menu {
+    right: -8px;
+    min-width: 180px;
+  }
+
+  /* Gráficos mínimos */
+  .bar-chart {
+    height: 120px;
+  }
+
+  .chart-legend {
+    gap: 10px;
+    font-size: 0.75rem;
+  }
+}
+
+
+/* ============================================================
+   8. BREAKPOINT: max-width 400px (MÓVILES MUY PEQUEÑOS)
+   Ajustes finales para pantallas extremadamente estrechas.
+   ============================================================ */
+
+@media (max-width: 400px) {
+  /* Sidebar un poco más estrecho */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+  }
+
+  /* Ocultar barra de búsqueda en pantallas muy pequeñas */
+  .search-bar {
+    display: none;
+  }
+
+  /* Botones de la tabla de acción como texto */
+  .table-actions .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  /* Paginación ultra compacta */
+  .pagination {
+    gap: 2px;
+  }
+
+  .pagination .page-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.72rem;
+  }
+
+  /* Avatar del header más pequeño */
+  .user-dropdown .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.72rem;
+  }
+}
+
+
+/* ============================================================
+   9. ESTILOS DE IMPRESIÓN
+   Se ocultan elementos no necesarios (sidebar, header),
+   se eliminan sombras y se asegura que el contenido
+   ocupe todo el ancho de la página impresa.
+   ============================================================ */
+
+@media print {
+  /* Ocultar sidebar, header, y elementos de navegación */
+  .sidebar,
+  .sidebar-overlay,
+  .hamburger-btn,
+  .top-header,
+  .toast-container,
+  .modal-overlay,
+  .pagination,
+  .table-actions,
+  .table-toolbar .btn,
+  .btn-icon,
+  .notification-bell,
+  .user-dropdown,
+  .search-bar {
+    display: none !important;
+  }
+
+  /* Contenido principal ocupa todo el ancho */
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Sin sombras ni bordes decorativos */
+  .card,
+  .kpi-card,
+  .data-table {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Fondo blanco para ahorro de tinta */
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .main-content {
+    padding: 0 !important;
+  }
+
+  /* Tablas a ancho completo */
+  .data-table {
+    width: 100% !important;
+  }
+
+  .data-table thead {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .data-table thead th {
+    color: #000000 !important;
+    border-bottom: 2px solid #333 !important;
+  }
+
+  .data-table td {
+    border-bottom: 1px solid #ccc !important;
+  }
+
+  /* KPIs en 2 columnas para impresión */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .kpi-card::before {
+    display: none;
+  }
+
+  /* Asegurar que los enlaces muestran la URL */
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.7rem;
+    color: #666;
+    font-weight: 400;
+  }
+
+  /* No mostrar URL para enlaces internos y de navegación */
+  .sidebar-item a[href]::after,
+  .breadcrumb a[href]::after,
+  .btn[href]::after,
+  .pagination a[href]::after {
+    content: '' !important;
+  }
+
+  /* Badges con borde para visibilidad */
+  .badge {
+    border: 1px solid currentColor !important;
+  }
+
+  /* Evitar cortes de página dentro de tarjetas */
+  .card,
+  .kpi-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Encabezados no se separan del contenido */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Tablas intentan no cortarse */
+  table, tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Sin animaciones */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* ============================================================
+   10. ORIENTACIÓN HORIZONTAL (LANDSCAPE) EN TABLETS
+   Ajustes para tablets en posición horizontal.
+   ============================================================ */
+
+@media (min-width: 769px) and (max-width: 992px) and (orientation: landscape) {
+  /* En landscape, sidebar sigue oculto pero KPIs en 4 columnas */
+  .kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* Formularios en 2 columnas */
+  .form-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Más espacio en el contenido */
+  .main-content {
+    padding: 20px 24px 36px;
+  }
+}
+
+
+/* ============================================================
+   11. DARK MODE (PREFERENCIA DEL SISTEMA)
+   Adaptaciones automáticas si el usuario tiene modo oscuro
+   habilitado en su sistema operativo. (Opcional / Futuro)
+   ============================================================ */
+
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-main: #0d1117;
+    --bg-card: #161b22;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-light: #6e7681;
+    --border: #30363d;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-lg: rgba(0, 0, 0, 0.5);
+  }
+}
+*/
+
+
+/* ============================================================
+   FIN DEL ARCHIVO — responsive.css
+   Sistema responsivo H&M SENA
+   ============================================================ */

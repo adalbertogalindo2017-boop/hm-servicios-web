@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="H&M Servicios — Plataforma líder en servicios de gasodomésticos y obra civil. Conectamos clientes con técnicos certificados cerca de ti." />
+  <meta name="keywords" content="gasodomésticos, obra civil, técnicos, servicios, reparación, instalación, mantenimiento, Colombia" />
+  <meta name="author" content="H&M Servicios" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="H&M Servicios — Técnicos Certificados a Tu Alcance" />
+  <meta property="og:description" content="Encuentra técnicos certificados en gasodomésticos y obra civil cerca de ti. Solicita servicios en minutos." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://hmservicios.com" />
+  <meta property="og:image" content="https://hmservicios.com/img/og-cover.jpg" />
+
+  <title>H&M Servicios — Técnicos Certificados a Tu Alcance</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ═══════════════ NAVIGATION ═══════════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#home" class="nav-logo">
+        <span class="logo-icon"><i class="fas fa-bolt"></i></span>
+        <span class="logo-text">H&M<span class="logo-accent">Servicios</span></span>
+      </a>
+
+      <ul class="nav-menu" id="navMenu">
+        <li class="nav-item"><a href="#home" class="nav-link" data-page="home"><i class="fas fa-home"></i> Inicio</a></li>
+        <li class="nav-item"><a href="#services" class="nav-link" data-page="services"><i class="fas fa-tools"></i> Servicios</a></li>
+        <li class="nav-item"><a href="#technicians" class="nav-link" data-page="technicians"><i class="fas fa-hard-hat"></i> Técnicos</a></li>
+        <!-- Auth-dependent items injected by JS -->
+        <li class="nav-item nav-auth-only nav-client" style="display:none;">
+          <a href="#client-dashboard" class="nav-link" data-page="client-dashboard"><i class="fas fa-th-large"></i> Mi Panel</a>
+        </li>
+        <li class="nav-item nav-auth-only nav-tech" style="display:none;">
+          <a href="#tech-dashboard" class="nav-link" data-page="tech-dashboard"><i class="fas fa-th-large"></i> Mi Panel</a>
+        </li>
+        <li class="nav-item nav-auth-only nav-admin" style="display:none;">
+          <a href="#admin-dashboard" class="nav-link" data-page="admin-dashboard"><i class="fas fa-chart-line"></i> Admin</a>
+        </li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Guest buttons -->
+        <div id="guestButtons">
+          <a href="#login" class="btn btn-ghost btn-sm">Iniciar Sesión</a>
+          <a href="#register" class="btn btn-primary btn-sm">Registrarse</a>
+        </div>
+        <!-- Auth buttons -->
+        <div id="authButtons" style="display:none;">
+          <span class="nav-user" id="navUserName"><i class="fas fa-user-circle"></i> <span></span></span>
+          <button class="btn btn-ghost btn-sm" id="logoutBtn">Salir</button>
+        </div>
+      </div>
+
+      <!-- Hamburger -->
+      <button class="hamburger" id="hamburger" aria-label="Menú de navegación" aria-expanded="false">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+  <main id="app" class="main-content">
+    <!-- Dynamic pages rendered here by the SPA router -->
+  </main>
+
+  <!-- ═══════════════ TOAST CONTAINER ═══════════════ -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ═══════════════ MODAL CONTAINER ═══════════════ -->
+  <div id="modalOverlay" class="modal-overlay" style="display:none;">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer class="footer">
+    <div class="footer-gradient"></div>
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <a href="#home" class="footer-logo">
+          <span class="logo-icon"><i class="fas fa-bolt"></i></span>
+          <span class="logo-text">H&M<span class="logo-accent">Servicios</span></span>
+        </a>
+        <p class="footer-desc">Conectamos clientes con técnicos certificados en gasodomésticos y obra civil. Calidad, rapidez y confianza en cada servicio.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Servicios</h4>
+        <ul>
+          <li><a href="#services">Gasodomésticos</a></li>
+          <li><a href="#services">Obra Civil</a></li>
+          <li><a href="#technicians">Buscar Técnicos</a></li>
+          <li><a href="#register">Ser Técnico</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#about">Nosotros</a></li>
+          <li><a href="#terms">Términos y Condiciones</a></li>
+          <li><a href="#privacy">Política de Privacidad</a></li>
+          <li><a href="#faq">Preguntas Frecuentes</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <ul>
+          <li><i class="fas fa-envelope"></i> contacto@hmservicios.com</li>
+          <li><i class="fas fa-phone"></i> +57 (601) 555-0123</li>
+          <li><i class="fas fa-map-marker-alt"></i> Bogotá, Colombia</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 H&M Servicios. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- ═══════════════ SCRIPTS (order matters) ═══════════════ -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/technicians.js"></script>
+  <script src="js/payments.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
