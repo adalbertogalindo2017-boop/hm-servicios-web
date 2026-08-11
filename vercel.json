@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": ["index.html", "style.css", "script.js"] }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/app.py" }
+  ]
+}
