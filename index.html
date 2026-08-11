@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>H&amp;M Servicios | Gas y Construcción Civil en Colombia</title>
+<meta name="description" content="H&M Servicios: instalación de gas, mantenimiento preventivo y construcción civil en Cundinamarca, Colombia. Agenda tu servicio en línea." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== HEADER / NAV ===================== -->
+<header class="navegacion" id="navegacion">
+  <div class="contenedor nav-contenedor">
+    <a href="#inicio" class="logo">
+      <span class="logo-icono" aria-hidden="true">🔧</span>
+      <span>H&amp;M <strong>Servicios</strong></span>
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="listaMenu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav>
+      <ul class="lista-menu" id="listaMenu">
+        <li><a href="#inicio" class="enlace-menu activo" data-seccion="inicio">Inicio</a></li>
+        <li><a href="#servicios" class="enlace-menu" data-seccion="servicios">Servicios</a></li>
+        <li><a href="#nosotros" class="enlace-menu" data-seccion="nosotros">Nosotros</a></li>
+        <li><a href="#proyectos" class="enlace-menu" data-seccion="proyectos">Proyectos</a></li>
+        <li><a href="#contacto" class="enlace-menu" data-seccion="contacto">Contacto</a></li>
+      </ul>
+    </nav>
+
+    <a href="#agenda" class="boton boton-llamativo boton-nav">Agenda Tu Servicio</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ===================== HERO / INICIO ===================== -->
+<section id="inicio" class="principal">
+  <div class="decoracion decoracion-1"></div>
+  <div class="decoracion decoracion-2"></div>
+  <div class="decoracion decoracion-3"></div>
+
+  <div class="contenedor">
+    <div class="contenido-principal">
+      <span class="etiqueta-eyebrow">Gas · Mantenimiento · Construcción Civil</span>
+      <h1 class="titulo-principal">H&amp;M Servicios</h1>
+      <p class="descripcion-principal">
+        Soluciones integrales para tu hogar: instalación segura de gas, mantenimiento
+        preventivo y proyectos de construcción civil en Cundinamarca, Colombia.
+      </p>
+      <div class="hero-botones">
+        <a href="#agenda" class="boton boton-accion">Agenda Tu Servicio</a>
+        <a href="#servicios" class="boton boton-fantasma">Ver Servicios</a>
+      </div>
+
+      <div class="hero-metricas" role="list">
+        <div class="metrica" role="listitem">
+          <span class="metrica-numero">+500</span>
+          <span class="metrica-texto">Servicios realizados</span>
+        </div>
+        <div class="metrica" role="listitem">
+          <span class="metrica-numero">100%</span>
+          <span class="metrica-texto">Técnicos certificados</span>
+        </div>
+        <div class="metrica" role="listitem">
+          <span class="metrica-numero">24h</span>
+          <span class="metrica-texto">Respuesta rápida</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cuadricula-servicios">
+      <div class="tarjeta-servicio tarjeta-amarilla" data-servicio="gas">
+        <div class="icono-servicio" aria-hidden="true">🔥</div>
+        <h3>Instalación de Gas</h3>
+        <p>Instalación segura y certificada de sistemas y artefactos a gas, cumpliendo la normativa vigente.</p>
+        <button type="button" class="boton-pequeno" data-abrir-servicio="gas">Ver Más</button>
+      </div>
+
+      <div class="tarjeta-servicio tarjeta-azul" data-servicio="mantenimiento">
+        <div class="icono-servicio" aria-hidden="true">🛠️</div>
+        <h3>Mantenimiento Preventivo</h3>
+        <p>Revisiones periódicas programadas que garantizan confiabilidad y previenen fallas costosas.</p>
+        <button type="button" class="boton-pequeno" data-abrir-servicio="mantenimiento">Ver Más</button>
+      </div>
+
+      <div class="tarjeta-servicio tarjeta-gris" data-servicio="construccion">
+        <div class="icono-servicio" aria-hidden="true">🧱</div>
+        <h3>Construcción Civil</h3>
+        <p>Proyectos de edificaciones residenciales y comerciales, de la planeación a la entrega.</p>
+        <button type="button" class="boton-pequeno" data-abrir-servicio="construccion">Ver Más</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SERVICIOS (detalle) ===================== -->
+<section id="servicios" class="seccion">
+  <div class="contenedor">
+    <div class="encabezado-seccion">
+      <span class="etiqueta-eyebrow">Lo que hacemos</span>
+      <h2 class="titulo-seccion">Nuestros servicios</h2>
+      <p class="texto-seccion">Elige el servicio que necesitas y agenda una visita técnica en minutos.</p>
+    </div>
+
+    <div class="detalle-servicios" id="detalleServicios">
+
+      <article class="detalle-servicio" id="servicio-gas" data-servicio="gas">
+        <div class="detalle-icono icono-amarillo" aria-hidden="true">🔥</div>
+        <div class="detalle-texto">
+          <h3>Instalación de Gas</h3>
+          <p>Instalamos redes internas, estufas, calentadores y sistemas centralizados de gas natural y GLP, con materiales certificados y pruebas de hermeticidad.</p>
+          <ul class="lista-check">
+            <li>Diagnóstico e instalación de redes de gas</li>
+            <li>Conexión de estufas, hornos y calentadores</li>
+            <li>Certificado de instalación segura</li>
+          </ul>
+          <button type="button" class="boton boton-pequeno-outline" data-agendar="Instalación de Gas">Solicitar cotización</button>
+        </div>
+      </article>
+
+      <article class="detalle-servicio" id="servicio-mantenimiento" data-servicio="mantenimiento">
+        <div class="detalle-icono icono-azul" aria-hidden="true">🛠️</div>
+        <div class="detalle-texto">
+          <h3>Mantenimiento Preventivo</h3>
+          <p>Programa revisiones periódicas para tus instalaciones de gas, estructuras y equipos, evitando emergencias y prolongando su vida útil.</p>
+          <ul class="lista-check">
+            <li>Revisión periódica programada</li>
+            <li>Detección temprana de fugas y desgaste</li>
+            <li>Reporte técnico después de cada visita</li>
+          </ul>
+          <button type="button" class="boton boton-pequeno-outline" data-agendar="Mantenimiento Preventivo">Solicitar cotización</button>
+        </div>
+      </article>
+
+      <article class="detalle-servicio" id="servicio-construccion" data-servicio="construccion">
+        <div class="detalle-icono icono-gris" aria-hidden="true">🧱</div>
+        <div class="detalle-texto">
+          <h3>Construcción Civil</h3>
+          <p>Acompañamos proyectos residenciales y comerciales completos: obra gris, acabados, remodelaciones y ampliaciones.</p>
+          <ul class="lista-check">
+            <li>Obra gris y acabados</li>
+            <li>Remodelaciones y ampliaciones</li>
+            <li>Seguimiento de obra con cronograma</li>
+          </ul>
+          <button type="button" class="boton boton-pequeno-outline" data-agendar="Construcción Civil">Solicitar cotización</button>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== NOSOTROS ===================== -->
+<section id="nosotros" class="seccion seccion-alterna">
+  <div class="contenedor grid-nosotros">
+    <div class="nosotros-texto">
+      <span class="etiqueta-eyebrow">Quiénes somos</span>
+      <h2 class="titulo-seccion">Profesionalismo y confianza en cada servicio</h2>
+      <p class="texto-seccion">
+        H&amp;M Servicios es una empresa colombiana dedicada a soluciones integrales para el hogar
+        y la construcción. Atendemos a residentes y empresas en la región de Cundinamarca,
+        ofreciendo procesos seguros, certificados y transparentes en cada etapa del servicio.
+      </p>
+      <div class="valores-grid">
+        <div class="valor-card">
+          <h4>Seguridad</h4>
+          <p>Cada instalación cumple la normativa técnica vigente.</p>
+        </div>
+        <div class="valor-card">
+          <h4>Transparencia</h4>
+          <p>Cotizaciones claras, sin costos ocultos.</p>
+        </div>
+        <div class="valor-card">
+          <h4>Cercanía</h4>
+          <p>Comunicación directa durante todo el proceso.</p>
+        </div>
+        <div class="valor-card">
+          <h4>Experiencia</h4>
+          <p>Técnicos certificados en gas y construcción.</p>
+        </div>
+      </div>
+    </div>
+    <div class="nosotros-tarjeta">
+      <h3>H&amp;M en cifras</h3>
+      <div class="cifra"><span>+8</span> años de experiencia</div>
+      <div class="cifra"><span>+500</span> servicios entregados</div>
+      <div class="cifra"><span>Cundinamarca</span> zona de cobertura</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROYECTOS ===================== -->
+<section id="proyectos" class="seccion">
+  <div class="contenedor">
+    <div class="encabezado-seccion">
+      <span class="etiqueta-eyebrow">Portafolio</span>
+      <h2 class="titulo-seccion">Proyectos realizados</h2>
+      <p class="texto-seccion">Algunos de los trabajos que hemos entregado recientemente.</p>
+    </div>
+
+    <div class="cuadricula-proyectos">
+      <div class="proyecto-card">
+        <div class="proyecto-imagen proyecto-amarillo" aria-hidden="true">🔥</div>
+        <div class="proyecto-info">
+          <span class="proyecto-categoria">Instalación de Gas</span>
+          <h3>Red de gas – Conjunto residencial, Chía</h3>
+          <p>Instalación de red interna de gas natural para 24 unidades habitacionales.</p>
+        </div>
+      </div>
+      <div class="proyecto-card">
+        <div class="proyecto-imagen proyecto-gris" aria-hidden="true">🧱</div>
+        <div class="proyecto-info">
+          <span class="proyecto-categoria">Construcción Civil</span>
+          <h3>Ampliación de vivienda – Cajicá</h3>
+          <p>Segundo piso completo: obra gris, acabados e instalaciones.</p>
+        </div>
+      </div>
+      <div class="proyecto-card">
+        <div class="proyecto-imagen proyecto-azul" aria-hidden="true">🛠️</div>
+        <div class="proyecto-info">
+          <span class="proyecto-categoria">Mantenimiento Preventivo</span>
+          <h3>Plan anual – Local comercial, Zipaquirá</h3>
+          <p>Cuatro visitas de mantenimiento programado a instalaciones de gas.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== AGENDA TU SERVICIO ===================== -->
+<section id="agenda" class="seccion seccion-alterna">
+  <div class="contenedor grid-agenda">
+    <div class="agenda-texto">
+      <span class="etiqueta-eyebrow">Reserva en línea</span>
+      <h2 class="titulo-seccion">Agenda tu servicio</h2>
+      <p class="texto-seccion">
+        Cuéntanos qué necesitas y un asesor de H&amp;M Servicios se pondrá en contacto contigo
+        para confirmar fecha, hora y cotización.
+      </p>
+      <ul class="lista-check">
+        <li>Confirmación por correo o teléfono</li>
+        <li>Visita técnica sin compromiso</li>
+        <li>Cotización antes de iniciar cualquier trabajo</li>
+      </ul>
+    </div>
+
+    <form class="tarjeta-formulario" id="formAgenda" novalidate>
+      <h3>Solicitud de servicio</h3>
+
+      <div class="campo">
+        <label for="agendaNombre">Nombre completo</label>
+        <input type="text" id="agendaNombre" name="nombre" required autocomplete="name" />
+        <span class="error-campo" data-error-para="agendaNombre"></span>
+      </div>
+
+      <div class="grid-2-campos">
+        <div class="campo">
+          <label for="agendaTelefono">Teléfono</label>
+          <input type="tel" id="agendaTelefono" name="telefono" required autocomplete="tel" placeholder="300 000 0000" />
+          <span class="error-campo" data-error-para="agendaTelefono"></span>
+        </div>
+        <div class="campo">
+          <label for="agendaCorreo">Correo electrónico</label>
+          <input type="email" id="agendaCorreo" name="correo" required autocomplete="email" />
+          <span class="error-campo" data-error-para="agendaCorreo"></span>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="agendaServicio">Servicio requerido</label>
+        <select id="agendaServicio" name="servicio" required>
+          <option value="">Seleccione un servicio</option>
+          <option value="Instalación de Gas">Instalación de Gas</option>
+          <option value="Mantenimiento Preventivo">Mantenimiento Preventivo</option>
+          <option value="Construcción Civil">Construcción Civil</option>
+          <option value="Otro">Otro</option>
+        </select>
+        <span class="error-campo" data-error-para="agendaServicio"></span>
+      </div>
+
+      <div class="campo">
+        <label for="agendaDireccion">Dirección del servicio</label>
+        <input type="text" id="agendaDireccion" name="direccion" required placeholder="Calle, ciudad" />
+        <span class="error-campo" data-error-para="agendaDireccion"></span>
+      </div>
+
+      <div class="grid-2-campos">
+        <div class="campo">
+          <label for="agendaFecha">Fecha preferida</label>
+          <input type="date" id="agendaFecha" name="fecha" required />
+          <span class="error-campo" data-error-para="agendaFecha"></span>
+        </div>
+        <div class="campo">
+          <label for="agendaFranja">Franja horaria</label>
+          <select id="agendaFranja" name="franja" required>
+            <option value="">Seleccione</option>
+            <option value="Mañana (8am - 12pm)">Mañana (8am - 12pm)</option>
+            <option value="Tarde (12pm - 5pm)">Tarde (12pm - 5pm)</option>
+          </select>
+          <span class="error-campo" data-error-para="agendaFranja"></span>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="agendaDescripcion">Describe brevemente el trabajo</label>
+        <textarea id="agendaDescripcion" name="descripcion" rows="3" required></textarea>
+        <span class="error-campo" data-error-para="agendaDescripcion"></span>
+      </div>
+
+      <button type="submit" class="boton boton-accion boton-ancho">Enviar solicitud</button>
+      <p class="mensaje-formulario" id="agendaMensaje" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ===================== CONTACTO ===================== -->
+<section id="contacto" class="seccion">
+  <div class="contenedor grid-contacto">
+    <div class="contacto-info">
+      <span class="etiqueta-eyebrow">Hablemos</span>
+      <h2 class="titulo-seccion">Contáctanos</h2>
+      <p class="texto-seccion">¿Tienes preguntas antes de agendar? Escríbenos y te respondemos pronto.</p>
+
+      <ul class="lista-contacto">
+        <li><span aria-hidden="true">📍</span> Chía, Cundinamarca, Colombia</li>
+        <li><span aria-hidden="true">📞</span> +57 318 663 0000</li>
+        <li><span aria-hidden="true">✉️</span> contacto@hymservicios.co</li>
+        <li><span aria-hidden="true">🕒</span> Lunes a sábado, 8:00 a.m. – 6:00 p.m.</li>
+      </ul>
+    </div>
+
+    <form class="tarjeta-formulario" id="formContacto" novalidate>
+      <h3>Envíanos un mensaje</h3>
+
+      <div class="campo">
+        <label for="contactoNombre">Nombre</label>
+        <input type="text" id="contactoNombre" name="nombre" required autocomplete="name" />
+        <span class="error-campo" data-error-para="contactoNombre"></span>
+      </div>
+
+      <div class="campo">
+        <label for="contactoCorreo">Correo electrónico</label>
+        <input type="email" id="contactoCorreo" name="correo" required autocomplete="email" />
+        <span class="error-campo" data-error-para="contactoCorreo"></span>
+      </div>
+
+      <div class="campo">
+        <label for="contactoMensaje">Mensaje</label>
+        <textarea id="contactoMensaje" name="mensaje" rows="4" required></textarea>
+        <span class="error-campo" data-error-para="contactoMensaje"></span>
+      </div>
+
+      <button type="submit" class="boton boton-llamativo boton-ancho">Enviar mensaje</button>
+      <p class="mensaje-formulario" id="contactoMensajeEstado" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="pie-pagina">
+  <div class="contenedor pie-contenido">
+    <div class="pie-marca">
+      <span class="logo-icono" aria-hidden="true">🔧</span>
+      <span>H&amp;M <strong>Servicios</strong></span>
+      <p>Soluciones integrales para tu hogar: gas y construcción civil en Colombia.</p>
+    </div>
+    <div class="pie-enlaces">
+      <h4>Navegación</h4>
+      <a href="#inicio">Inicio</a>
+      <a href="#servicios">Servicios</a>
+      <a href="#nosotros">Nosotros</a>
+      <a href="#proyectos">Proyectos</a>
+      <a href="#contacto">Contacto</a>
+    </div>
+    <div class="pie-enlaces">
+      <h4>Contacto</h4>
+      <span>Chía, Cundinamarca, Colombia</span>
+      <span>+57 318 663 0000</span>
+      <span>contacto@hymservicios.co</span>
+    </div>
+  </div>
+  <div class="pie-copy">© <span id="anioActual"></span> H&amp;M Servicios. Todos los derechos reservados.</div>
+</footer>
+
+<!-- ===================== TOAST DE CONFIRMACIÓN ===================== -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
