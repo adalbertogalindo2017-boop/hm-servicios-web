@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 hym.db
 .vercel
+node_modules/
+data/
+.env
