@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Panel de control principal del sistema administrativo H&M con métricas, gráficos y resumen de operaciones">
+  <title>Dashboard — H&M Sistema Administrativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <!-- Enlace de accesibilidad -->
+  <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+  
+  <div class="app-container">
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Menú principal">
+      <div class="sidebar-header">
+        <a href="dashboard.html" class="sidebar-logo">
+          <span class="logo-icon"><i class="fas fa-store"></i></span>
+          <span class="logo-text">H&M<span class="logo-accent">Admin</span></span>
+        </a>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-title">Principal</div>
+        <a href="dashboard.html" class="sidebar-item active" data-page="dashboard">
+          <i class="fas fa-th-large"></i><span>Dashboard</span>
+        </a>
+        
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-title">Gestión Comercial</div>
+        <a href="productos.html" class="sidebar-item" data-page="productos">
+          <i class="fas fa-tshirt"></i><span>Productos</span>
+        </a>
+        <a href="categorias.html" class="sidebar-item" data-page="categorias">
+          <i class="fas fa-tags"></i><span>Categorías</span>
+        </a>
+        <a href="inventario.html" class="sidebar-item" data-page="inventario">
+          <i class="fas fa-boxes-stacked"></i><span>Inventario</span>
+        </a>
+        
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-title">Operaciones</div>
+        <a href="clientes.html" class="sidebar-item" data-page="clientes">
+          <i class="fas fa-users"></i><span>Clientes</span>
+        </a>
+        <a href="pedidos.html" class="sidebar-item" data-page="pedidos">
+          <i class="fas fa-clipboard-list"></i><span>Pedidos</span>
+        </a>
+        <a href="ventas.html" class="sidebar-item" data-page="ventas">
+          <i class="fas fa-cash-register"></i><span>Ventas</span>
+        </a>
+        <a href="facturacion.html" class="sidebar-item" data-page="facturacion">
+          <i class="fas fa-file-invoice-dollar"></i><span>Facturación</span>
+        </a>
+        
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-title">Recursos</div>
+        <a href="proveedores.html" class="sidebar-item" data-page="proveedores">
+          <i class="fas fa-truck"></i><span>Proveedores</span>
+        </a>
+        <a href="empleados.html" class="sidebar-item" data-page="empleados">
+          <i class="fas fa-user-tie"></i><span>Empleados</span>
+        </a>
+        
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-title">Análisis</div>
+        <a href="reportes.html" class="sidebar-item" data-page="reportes">
+          <i class="fas fa-chart-bar"></i><span>Reportes</span>
+        </a>
+        
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-title">Sistema</div>
+        <a href="configuracion.html" class="sidebar-item" data-page="configuracion">
+          <i class="fas fa-cog"></i><span>Configuración</span>
+        </a>
+        <a href="perfil.html" class="sidebar-item" data-page="perfil">
+          <i class="fas fa-user-circle"></i><span>Mi Perfil</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar">AD</div>
+          <div class="sidebar-user-info">
+            <span class="sidebar-user-name">Admin H&M</span>
+            <span class="sidebar-user-role">Administrador</span>
+          </div>
+        </div>
+        <a href="login.html" class="sidebar-item" data-page="logout">
+          <i class="fas fa-sign-out-alt"></i><span>Cerrar Sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ===================== CONTENIDO PRINCIPAL ===================== -->
+    <div class="main-wrapper">
+      <!-- Encabezado superior -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir menú">
+            <span></span><span></span><span></span>
+          </button>
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="dashboard.html">Dashboard</a>
+          </nav>
+        </div>
+        <div class="header-actions">
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="Buscar..." aria-label="Búsqueda global" id="globalSearch">
+          </div>
+          <button class="notification-bell" aria-label="Notificaciones" id="notifBtn">
+            <i class="fas fa-bell"></i>
+            <span class="notif-badge">3</span>
+          </button>
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-dropdown-trigger">
+              <div class="user-avatar">AD</div>
+              <span class="user-name">Admin</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="user-dropdown-menu">
+              <a href="perfil.html"><i class="fas fa-user"></i> Mi Perfil</a>
+              <a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a>
+              <div class="dropdown-divider"></div>
+              <a href="login.html"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Contenido principal del Dashboard -->
+      <main id="main-content" class="main-content">
+        <!-- Título de página y bienvenida -->
+        <div class="page-header">
+          <div class="page-header-content">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Bienvenido de vuelta, <strong>Admin H&M</strong>. Aquí tienes el resumen de hoy.</p>
+          </div>
+          <div class="page-header-actions">
+            <span class="page-date" id="currentDate"><i class="fas fa-calendar-alt"></i> Cargando fecha...</span>
+          </div>
+        </div>
+
+        <!-- Contenedor dinámico para app.js -->
+        <div id="dashboard-content">
+          <!-- ===================== TARJETAS KPI ===================== -->
+          <section class="kpi-grid" aria-label="Indicadores clave de rendimiento">
+            <!-- KPI 1: Ventas Hoy -->
+            <article class="kpi-card kpi-ventas" aria-label="Ventas del día">
+              <div class="kpi-icon">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Ventas Hoy</span>
+                <span class="kpi-value" id="kpiVentasHoy">$2,450,000</span>
+                <span class="kpi-change positive"><i class="fas fa-arrow-up"></i> 12.5% vs ayer</span>
+              </div>
+            </article>
+
+            <!-- KPI 2: Pedidos Pendientes -->
+            <article class="kpi-card kpi-pedidos" aria-label="Pedidos pendientes">
+              <div class="kpi-icon">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Pedidos Pendientes</span>
+                <span class="kpi-value" id="kpiPedidosPendientes">18</span>
+                <span class="kpi-change negative"><i class="fas fa-arrow-up"></i> 3 nuevos hoy</span>
+              </div>
+            </article>
+
+            <!-- KPI 3: Inventario Bajo -->
+            <article class="kpi-card kpi-inventario" aria-label="Productos con inventario bajo">
+              <div class="kpi-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Inventario Bajo</span>
+                <span class="kpi-value" id="kpiInventarioBajo">7</span>
+                <span class="kpi-change warning"><i class="fas fa-exclamation-circle"></i> Requiere atención</span>
+              </div>
+            </article>
+
+            <!-- KPI 4: Clientes Nuevos -->
+            <article class="kpi-card kpi-clientes" aria-label="Clientes nuevos este mes">
+              <div class="kpi-icon">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">Clientes Nuevos</span>
+                <span class="kpi-value" id="kpiClientesNuevos">34</span>
+                <span class="kpi-change positive"><i class="fas fa-arrow-up"></i> 8.2% este mes</span>
+              </div>
+            </article>
+          </section>
+
+          <!-- ===================== GRÁFICOS ===================== -->
+          <section class="charts-row" aria-label="Gráficos de rendimiento">
+            <!-- Gráfico de barras: Ventas Mensuales -->
+            <article class="chart-card chart-large" aria-label="Gráfico de ventas mensuales">
+              <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-chart-bar"></i> Ventas Mensuales</h2>
+                <div class="card-actions">
+                  <select id="chartPeriod" class="form-select-sm" aria-label="Seleccionar período">
+                    <option value="6m">Últimos 6 meses</option>
+                    <option value="12m">Último año</option>
+                    <option value="3m">Últimos 3 meses</option>
+                  </select>
+                </div>
+              </div>
+              <div class="chart-container" id="chartVentasMensuales">
+                <!-- Gráfico de barras simulado con CSS -->
+                <div class="bar-chart" aria-label="Gráfico de barras de ventas mensuales">
+                  <div class="bar-item">
+                    <div class="bar" style="height: 65%;" aria-label="Enero: $18.5M"></div>
+                    <span class="bar-label">Ene</span>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 45%;" aria-label="Febrero: $12.3M"></div>
+                    <span class="bar-label">Feb</span>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 75%;" aria-label="Marzo: $22.1M"></div>
+                    <span class="bar-label">Mar</span>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 55%;" aria-label="Abril: $15.8M"></div>
+                    <span class="bar-label">Abr</span>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar" style="height: 85%;" aria-label="Mayo: $25.4M"></div>
+                    <span class="bar-label">May</span>
+                  </div>
+                  <div class="bar-item">
+                    <div class="bar active" style="height: 90%;" aria-label="Junio: $28.2M"></div>
+                    <span class="bar-label">Jun</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- Gráfico donut: Pedidos por Estado -->
+            <article class="chart-card chart-small" aria-label="Gráfico de pedidos por estado">
+              <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-chart-pie"></i> Pedidos por Estado</h2>
+              </div>
+              <div class="chart-container" id="chartPedidosEstado">
+                <!-- Gráfico donut simulado con CSS -->
+                <div class="donut-chart" role="img" aria-label="Distribución de pedidos: 45% Completados, 25% En Proceso, 20% Pendientes, 10% Cancelados">
+                  <div class="donut-ring"></div>
+                  <div class="donut-center">
+                    <span class="donut-total">156</span>
+                    <span class="donut-label">Total</span>
+                  </div>
+                </div>
+                <ul class="chart-legend" aria-label="Leyenda del gráfico">
+                  <li><span class="legend-dot completado"></span> Completados (45%)</li>
+                  <li><span class="legend-dot en-proceso"></span> En Proceso (25%)</li>
+                  <li><span class="legend-dot pendiente"></span> Pendientes (20%)</li>
+                  <li><span class="legend-dot cancelado"></span> Cancelados (10%)</li>
+                </ul>
+              </div>
+            </article>
+          </section>
+
+          <!-- ===================== PEDIDOS RECIENTES ===================== -->
+          <section class="card" aria-label="Pedidos recientes">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-clipboard-list"></i> Pedidos Recientes</h2>
+              <a href="pedidos.html" class="card-link" aria-label="Ver todos los pedidos">Ver todos <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="tablaPedidosRecientes" aria-label="Tabla de pedidos recientes">
+                <thead>
+                  <tr>
+                    <th scope="col">N° Pedido</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>#PED-001</strong></td>
+                    <td>María García López</td>
+                    <td>27/06/2026</td>
+                    <td>$185,000</td>
+                    <td><span class="badge badge-success">Completado</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>#PED-002</strong></td>
+                    <td>Carlos Rodríguez</td>
+                    <td>27/06/2026</td>
+                    <td>$342,500</td>
+                    <td><span class="badge badge-warning">En Proceso</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>#PED-003</strong></td>
+                    <td>Ana Martínez Ruiz</td>
+                    <td>26/06/2026</td>
+                    <td>$98,700</td>
+                    <td><span class="badge badge-info">Pendiente</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>#PED-004</strong></td>
+                    <td>Luis Hernández</td>
+                    <td>26/06/2026</td>
+                    <td>$567,000</td>
+                    <td><span class="badge badge-success">Completado</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>#PED-005</strong></td>
+                    <td>Patricia Morales</td>
+                    <td>25/06/2026</td>
+                    <td>$124,300</td>
+                    <td><span class="badge badge-danger">Cancelado</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ===================== ALERTAS DE STOCK BAJO ===================== -->
+          <section class="card" aria-label="Alertas de stock bajo">
+            <div class="card-header">
+              <h2 class="card-title"><i class="fas fa-exclamation-triangle"></i> Alertas de Stock Bajo</h2>
+              <a href="inventario.html" class="card-link" aria-label="Ver inventario completo">Ver inventario <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="alerts-grid" id="alertasStockBajo">
+              <!-- Alerta 1 -->
+              <div class="alert-item alert-critical" aria-label="Alerta crítica de stock">
+                <div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="alert-info">
+                  <span class="alert-product">Camiseta Básica Blanca (M)</span>
+                  <span class="alert-stock">Stock: <strong>3</strong> / Mínimo: 20</span>
+                </div>
+                <span class="badge badge-danger">Crítico</span>
+              </div>
+              <!-- Alerta 2 -->
+              <div class="alert-item alert-critical" aria-label="Alerta crítica de stock">
+                <div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="alert-info">
+                  <span class="alert-product">Jeans Slim Fit Azul (32)</span>
+                  <span class="alert-stock">Stock: <strong>5</strong> / Mínimo: 15</span>
+                </div>
+                <span class="badge badge-danger">Crítico</span>
+              </div>
+              <!-- Alerta 3 -->
+              <div class="alert-item alert-warning" aria-label="Alerta de stock bajo">
+                <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="alert-info">
+                  <span class="alert-product">Vestido Floral Verano (S)</span>
+                  <span class="alert-stock">Stock: <strong>8</strong> / Mínimo: 12</span>
+                </div>
+                <span class="badge badge-warning">Bajo</span>
+              </div>
+              <!-- Alerta 4 -->
+              <div class="alert-item alert-warning" aria-label="Alerta de stock bajo">
+                <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="alert-info">
+                  <span class="alert-product">Chaqueta Denim Oversize (L)</span>
+                  <span class="alert-stock">Stock: <strong>10</strong> / Mínimo: 15</span>
+                </div>
+                <span class="badge badge-warning">Bajo</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+  
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <!-- Overlay del sidebar para móvil -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script src="js/validaciones.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
