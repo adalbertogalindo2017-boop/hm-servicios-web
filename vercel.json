@@ -2,12 +2,12 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.py",
-      "use": "@vercel/python",
-      "config": { "includeFiles": ["index.html", "style.css", "script.js"] }
+      "src": "server/server.js",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["public/**"] }
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/app.py" }
+    { "src": "/(.*)", "dest": "/server/server.js" }
   ]
 }

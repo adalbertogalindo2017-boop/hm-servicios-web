@@ -14,7 +14,14 @@ const fs = require('fs');
  * Ruta absoluta al archivo de la base de datos.
  * Se crea el directorio contenedor si no existe.
  */
-const DB_PATH = path.resolve(process.env.DB_PATH || './data/hm_servicios.db');
+// En Vercel (funciones serverless) el sistema de archivos es de solo lectura
+// salvo /tmp, por lo que ahí se guarda la base de datos cuando corre en ese
+// entorno. Ten en cuenta que /tmp no persiste entre invocaciones frías, así
+// que en producción real conviene migrar a una base de datos gestionada
+// (por ejemplo Turso/libSQL o Postgres) en vez de SQLite local.
+const DB_PATH = process.env.VERCEL
+  ? '/tmp/hm_servicios.db'
+  : path.resolve(process.env.DB_PATH || './data/hm_servicios.db');
 const dbDir = path.dirname(DB_PATH);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });

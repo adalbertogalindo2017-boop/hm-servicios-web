@@ -22,7 +22,8 @@ const auth = (() => {
 
   function getUserRole() {
     const u = getUser();
-    return u ? u.role || u.rol : null;
+    // El backend siempre devuelve el rol en inglés: 'client' | 'technician' | 'admin'.
+    return u ? u.role : null;
   }
 
   // ── UI updates ─────────────────────────────────────────────
@@ -39,12 +40,12 @@ const auth = (() => {
       guest.style.display = 'none';
       authBtns.style.display = 'flex';
       const nameSpan = authBtns.querySelector('#navUserName span');
-      if (nameSpan) nameSpan.textContent = user.name || user.nombre || 'Usuario';
+      if (nameSpan) nameSpan.textContent = user.name || 'Usuario';
 
       const role = getUserRole();
-      clientNav.forEach(el => el.style.display = role === 'cliente' ? '' : 'none');
-      techNav.forEach(el   => el.style.display = role === 'tecnico' ? '' : 'none');
-      adminNav.forEach(el  => el.style.display = role === 'admin'   ? '' : 'none');
+      clientNav.forEach(el => el.style.display = role === 'client'     ? '' : 'none');
+      techNav.forEach(el   => el.style.display = role === 'technician' ? '' : 'none');
+      adminNav.forEach(el  => el.style.display = role === 'admin'      ? '' : 'none');
     } else {
       guest.style.display = 'flex';
       authBtns.style.display = 'none';
@@ -110,7 +111,7 @@ const auth = (() => {
       window.toast('¡Bienvenido de nuevo!', 'success');
       const role = getUserRole();
       if (role === 'admin') location.hash = '#admin-dashboard';
-      else if (role === 'tecnico') location.hash = '#tech-dashboard';
+      else if (role === 'technician') location.hash = '#tech-dashboard';
       else location.hash = '#client-dashboard';
     } catch (err) {
       window.toast(err.message || 'Error al iniciar sesión', 'error');
@@ -133,16 +134,16 @@ const auth = (() => {
 
           <!-- Role Selector -->
           <div class="role-selector">
-            <button class="role-btn active" data-role="cliente">
+            <button class="role-btn active" data-role="client">
               <i class="fas fa-user"></i> Soy Cliente
             </button>
-            <button class="role-btn" data-role="tecnico">
+            <button class="role-btn" data-role="technician">
               <i class="fas fa-hard-hat"></i> Soy Técnico
             </button>
           </div>
 
           <form id="registerForm" class="auth-form" novalidate>
-            <input type="hidden" id="registerRole" value="cliente" />
+            <input type="hidden" id="registerRole" value="client" />
 
             <div class="form-row">
               <div class="form-group">
@@ -221,7 +222,7 @@ const auth = (() => {
         btn.classList.add('active');
         const role = btn.dataset.role;
         document.getElementById('registerRole').value = role;
-        document.getElementById('techFields').style.display = role === 'tecnico' ? 'block' : 'none';
+        document.getElementById('techFields').style.display = role === 'technician' ? 'block' : 'none';
       });
     });
   }
@@ -231,14 +232,14 @@ const auth = (() => {
     const btn = e.target.querySelector('button[type="submit"]');
     const role = document.getElementById('registerRole').value;
     const payload = {
-      nombre: document.getElementById('regName').value.trim(),
+      name: document.getElementById('regName').value.trim(),
       email: document.getElementById('regEmail').value.trim(),
-      telefono: document.getElementById('regPhone').value.trim(),
+      phone: document.getElementById('regPhone').value.trim(),
       password: document.getElementById('regPassword').value,
-      rol: role
+      role
     };
 
-    if (!payload.nombre || !payload.email || !payload.password) {
+    if (!payload.name || !payload.email || !payload.password) {
       window.toast('Por favor completa todos los campos obligatorios', 'warning');
       return;
     }
@@ -247,10 +248,10 @@ const auth = (() => {
       return;
     }
 
-    if (role === 'tecnico') {
-      payload.especialidades = document.getElementById('regSpecialties').value.split(',').map(s => s.trim()).filter(Boolean);
-      payload.zonaCobertura = document.getElementById('regCoverage').value.trim();
-      payload.descripcion = document.getElementById('regDescription').value.trim();
+    if (role === 'technician') {
+      payload.specialties = document.getElementById('regSpecialties').value.split(',').map(s => s.trim()).filter(Boolean);
+      payload.address = document.getElementById('regCoverage').value.trim();
+      payload.description = document.getElementById('regDescription').value.trim();
     }
 
     toggleBtnLoading(btn, true);
@@ -259,7 +260,7 @@ const auth = (() => {
       saveSession(data);
       updateNav();
       window.toast('¡Cuenta creada exitosamente!', 'success');
-      location.hash = role === 'tecnico' ? '#tech-dashboard' : '#client-dashboard';
+      location.hash = role === 'technician' ? '#tech-dashboard' : '#client-dashboard';
     } catch (err) {
       window.toast(err.message || 'Error al crear la cuenta', 'error');
     } finally {
