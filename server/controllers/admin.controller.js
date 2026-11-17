@@ -121,10 +121,14 @@ exports.createUser = (req, res) => {
         const result = insertUser.run(name, email, password_hash, phone || null, address || null, role);
 
         if (role === 'technician') {
+            // specialties se guarda como JSON (ver technicians.controller.js#getAll,
+            // que hace JSON.parse sobre esta columna) — un string vacío no es JSON
+            // válido y rompía ese endpoint.
+            const specialtiesJson = JSON.stringify(Array.isArray(req.body.specialties) ? req.body.specialties : []);
             db.prepare(`
                 INSERT INTO technician_profiles (user_id, specialties, description, is_available)
                 VALUES (?, ?, ?, 1)
-            `).run(result.lastInsertRowid, req.body.specialties || '', req.body.description || '');
+            `).run(result.lastInsertRowid, specialtiesJson, req.body.description || '');
         }
 
         const newUser = db.prepare('SELECT id, name, email, role, is_active, created_at FROM users WHERE id = ?').get(result.lastInsertRowid);
@@ -163,7 +167,7 @@ exports.updateUserRole = (req, res) => {
             if (!hasProfile) {
                 db.prepare(`
                     INSERT INTO technician_profiles (user_id, specialties, description, is_available)
-                    VALUES (?, '', '', 1)
+                    VALUES (?, '[]', '', 1)
                 `).run(targetId);
             }
         }
