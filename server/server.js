@@ -46,6 +46,13 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+// En Vercel, el runtime de Node para funciones serverless invoca este
+// módulo como un handler de petición/respuesta (no necesita que el proceso
+// escuche un puerto), así que `app.listen` solo se ejecuta fuera de Vercel.
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

@@ -7,7 +7,10 @@ router.use(verifyToken, requireRole('admin'));
 
 router.get('/dashboard', adminController.getDashboard);
 router.get('/users', adminController.getAllUsers);
+router.post('/users', adminController.createUser);
+router.patch('/users/:id/role', adminController.updateUserRole);
 router.post('/users/:id/toggle', adminController.toggleUserStatus);
+router.get('/requests', adminController.getAllRequests);
 router.get('/payouts', adminController.getPayouts);
 router.post('/payouts/:id/process', adminController.processPayout);
 router.get('/revenue', adminController.getRevenueReport);

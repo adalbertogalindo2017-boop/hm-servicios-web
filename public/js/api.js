@@ -51,6 +51,15 @@ const api = (() => {
       };
     }
 
+    // El backend responde siempre con el sobre { success, data, message }.
+    // Todo el código que consume este cliente espera el payload interno
+    // directamente (p. ej. { token, user } en vez de { success, data: { token, user } }),
+    // así que lo desenvolvemos aquí, en un solo lugar, en vez de en cada
+    // llamada. Si la respuesta no trae "data" (p. ej. solo { success, message }),
+    // se devuelve el objeto completo para que el "message" siga disponible.
+    if (data && Object.prototype.hasOwnProperty.call(data, 'data')) {
+      return data.data;
+    }
     return data;
   }
 

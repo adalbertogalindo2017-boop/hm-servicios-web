@@ -10,8 +10,12 @@ exports.getAll = (req, res) => {
             WHERE u.role = 'technician' AND u.is_active = 1
         `).all();
         
-        // Parse specialties JSON
-        technicians.forEach(t => t.specialties = JSON.parse(t.specialties));
+        // Parse specialties JSON. Una fila con un valor no-JSON (p. ej. vacío)
+        // no debe tumbar la respuesta completa para todos los técnicos.
+        technicians.forEach(t => {
+            try { t.specialties = JSON.parse(t.specialties); }
+            catch { t.specialties = []; }
+        });
         res.json({ success: true, data: technicians });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error' });

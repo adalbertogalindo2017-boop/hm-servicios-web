@@ -2,10 +2,18 @@ const { db } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const { generateToken, generateRefreshToken } = require('../utils/helpers');
 
+// Roles que un visitante puede elegir libremente al registrarse desde el
+// formulario público. 'admin' NUNCA se acepta aquí: los administradores solo
+// se crean desde el panel de administración (ver admin.controller.js) o con
+// el script scripts/create-admin.js, ambos reservados a quien ya es admin.
+const PUBLIC_REGISTRATION_ROLES = ['client', 'technician'];
+
 exports.register = (req, res) => {
     try {
-        const { name, email, password, phone, address, role, specialties, description } = req.body;
-        
+        const { name, email, password, phone, address, specialties, description } = req.body;
+        const requestedRole = req.body.role;
+        const role = PUBLIC_REGISTRATION_ROLES.includes(requestedRole) ? requestedRole : 'client';
+
         // Check if user exists
         const userExists = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (userExists) {
@@ -13,7 +21,7 @@ exports.register = (req, res) => {
         }
 
         const password_hash = bcrypt.hashSync(password, 10);
-        
+
         const insertUser = db.prepare(`
             INSERT INTO users (name, email, password_hash, phone, address, role)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -21,7 +29,7 @@ exports.register = (req, res) => {
 
         let userId;
         db.transaction(() => {
-            const result = insertUser.run(name, email, password_hash, phone, address, role || 'client');
+            const result = insertUser.run(name, email, password_hash, phone, address, role);
             userId = result.lastInsertRowid;
 
             if (role === 'technician') {
@@ -33,7 +41,7 @@ exports.register = (req, res) => {
             }
         })();
 
-        const token = generateToken({ id: userId, role: role || 'client' });
+        const token = generateToken({ id: userId, role });
         res.status(201).json({ success: true, data: { token, user: { id: userId, name, email, role } } });
     } catch (error) {
         console.error(error);

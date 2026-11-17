@@ -258,74 +258,180 @@ const dashboard = (() => {
   //  ADMIN DASHBOARD
   // ═══════════════════════════════════════════════════════════
 
+  // Secciones de la barra lateral de administración. 'id' es el sufijo usado
+  // en los contenedores (#admin-section-<id>) y en el atributo data-section
+  // de cada botón de la barra.
+  const ADMIN_SECTIONS = [
+    { id: 'resumen',     label: 'Resumen',       icon: 'fa-chart-line' },
+    { id: 'usuarios',    label: 'Usuarios',      icon: 'fa-users-cog' },
+    { id: 'tecnicos',    label: 'Técnicos',      icon: 'fa-hard-hat' },
+    { id: 'solicitudes', label: 'Solicitudes',   icon: 'fa-clipboard-list' },
+    { id: 'pagos',       label: 'Pagos',         icon: 'fa-money-check-alt' },
+    { id: 'ingresos',    label: 'Ingresos',      icon: 'fa-dollar-sign' }
+  ];
+
   function renderAdminDashboard() {
     return `
       <section class="page-section dashboard-page admin-dashboard">
-        <div class="container">
-          <div class="dashboard-header animate-on-scroll">
-            <div>
-              <h2><i class="fas fa-chart-line"></i> Panel de Administración</h2>
-              <p>Visión general de la plataforma H&M Servicios.</p>
-            </div>
-          </div>
+        <div class="container admin-layout">
+          <!-- Barra lateral de administración -->
+          <aside class="admin-sidebar glass-card">
+            <div class="admin-sidebar-title"><i class="fas fa-user-shield"></i> Administración</div>
+            <nav class="admin-sidebar-nav">
+              ${ADMIN_SECTIONS.map((s, i) => `
+                <button class="admin-sidebar-link${i === 0 ? ' active' : ''}" data-section="${s.id}">
+                  <i class="fas ${s.icon}"></i> ${s.label}
+                </button>
+              `).join('')}
+            </nav>
+          </aside>
 
-          <!-- Stats -->
-          <div class="stats-grid stats-grid-4 animate-on-scroll">
-            <div class="stat-card glass-card">
-              <div class="stat-icon" style="background:linear-gradient(135deg,hsl(220,90%,56%),hsl(240,80%,60%))"><i class="fas fa-users"></i></div>
-              <div class="stat-info"><span class="stat-value" id="adminTotalUsers">-</span><span class="stat-label">Usuarios</span></div>
+          <div class="admin-content">
+            <div class="dashboard-header animate-on-scroll">
+              <div>
+                <h2><i class="fas fa-chart-line"></i> Panel de Administración</h2>
+                <p>Visión general de la plataforma H&M Servicios.</p>
+              </div>
             </div>
-            <div class="stat-card glass-card">
-              <div class="stat-icon" style="background:linear-gradient(135deg,hsl(160,84%,44%),hsl(140,70%,40%))"><i class="fas fa-hard-hat"></i></div>
-              <div class="stat-info"><span class="stat-value" id="adminActiveTechs">-</span><span class="stat-label">Técnicos Activos</span></div>
-            </div>
-            <div class="stat-card glass-card">
-              <div class="stat-icon" style="background:linear-gradient(135deg,hsl(36,100%,56%),hsl(30,90%,50%))"><i class="fas fa-calendar-day"></i></div>
-              <div class="stat-info"><span class="stat-value" id="adminTodayServices">-</span><span class="stat-label">Servicios Hoy</span></div>
-            </div>
-            <div class="stat-card glass-card">
-              <div class="stat-icon" style="background:linear-gradient(135deg,hsl(280,80%,55%),hsl(300,70%,50%))"><i class="fas fa-dollar-sign"></i></div>
-              <div class="stat-info"><span class="stat-value" id="adminMonthlyRevenue">-</span><span class="stat-label">Ingresos del Mes</span></div>
-            </div>
-          </div>
 
-          <!-- Revenue Chart -->
-          <div class="dashboard-section glass-card animate-on-scroll">
-            <h3><i class="fas fa-chart-bar"></i> Ingresos por Mes</h3>
-            <div class="bar-chart" id="revenueChart"></div>
-          </div>
+            <!-- Resumen -->
+            <div class="admin-section" id="admin-section-resumen">
+              <div class="stats-grid stats-grid-4 animate-on-scroll">
+                <div class="stat-card glass-card">
+                  <div class="stat-icon" style="background:linear-gradient(135deg,hsl(220,90%,56%),hsl(240,80%,60%))"><i class="fas fa-users"></i></div>
+                  <div class="stat-info"><span class="stat-value" id="adminTotalUsers">-</span><span class="stat-label">Usuarios</span></div>
+                </div>
+                <div class="stat-card glass-card">
+                  <div class="stat-icon" style="background:linear-gradient(135deg,hsl(160,84%,44%),hsl(140,70%,40%))"><i class="fas fa-hard-hat"></i></div>
+                  <div class="stat-info"><span class="stat-value" id="adminActiveTechs">-</span><span class="stat-label">Técnicos Activos</span></div>
+                </div>
+                <div class="stat-card glass-card">
+                  <div class="stat-icon" style="background:linear-gradient(135deg,hsl(280,80%,55%),hsl(300,70%,50%))"><i class="fas fa-dollar-sign"></i></div>
+                  <div class="stat-info"><span class="stat-value" id="adminTotalRevenue">-</span><span class="stat-label">Ingresos (comisión)</span></div>
+                </div>
+              </div>
 
-          <!-- Recent Requests -->
-          <div class="dashboard-section glass-card animate-on-scroll">
-            <h3><i class="fas fa-clipboard-list"></i> Solicitudes Recientes</h3>
-            <div class="table-responsive">
-              <table class="data-table" id="adminRequestsTable">
-                <thead>
-                  <tr>
-                    <th>ID</th><th>Servicio</th><th>Cliente</th><th>Técnico</th><th>Estado</th><th>Fecha</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td colspan="6" class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</td></tr>
-                </tbody>
-              </table>
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-chart-bar"></i> Ingresos por Mes (comisión de la empresa)</h3>
+                <div class="bar-chart" id="revenueChart"></div>
+              </div>
+
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-clipboard-list"></i> Solicitudes Recientes</h3>
+                <div class="table-responsive">
+                  <table class="data-table" id="adminRecentRequestsTable">
+                    <thead><tr><th>ID</th><th>Servicio</th><th>Cliente</th><th>Técnico</th><th>Estado</th><th>Fecha</th></tr></thead>
+                    <tbody><tr><td colspan="6" class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <!-- User Management -->
-          <div class="dashboard-section glass-card animate-on-scroll">
-            <h3><i class="fas fa-users-cog"></i> Gestión de Usuarios</h3>
-            <div class="table-responsive">
-              <table class="data-table" id="adminUsersTable">
-                <thead>
-                  <tr>
-                    <th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td colspan="5" class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</td></tr>
-                </tbody>
-              </table>
+            <!-- Usuarios -->
+            <div class="admin-section" id="admin-section-usuarios" style="display:none;">
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-user-plus"></i> Crear Administrador</h3>
+                <p class="admin-hint">Crea aquí una nueva cuenta de administrador, técnico o cliente. Es la única forma de dar acceso de administrador a alguien, además del script <code>scripts/create-admin.js</code>.</p>
+                <form id="createUserForm" class="auth-form admin-create-form" novalidate>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <div class="input-wrapper">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="newUserName" placeholder=" " required />
+                        <label for="newUserName">Nombre completo</label>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="input-wrapper">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="newUserEmail" placeholder=" " required />
+                        <label for="newUserEmail">Correo electrónico</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <div class="input-wrapper">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="newUserPassword" placeholder=" " required minlength="6" />
+                        <label for="newUserPassword">Contraseña (mín. 6 caracteres)</label>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="input-wrapper">
+                        <i class="fas fa-user-tag input-icon"></i>
+                        <select id="newUserRole" required>
+                          <option value="admin">Administrador</option>
+                          <option value="technician">Técnico</option>
+                          <option value="client">Cliente</option>
+                        </select>
+                        <label for="newUserRole" class="select-label">Rol</label>
+                      </div>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <span class="btn-text"><i class="fas fa-user-plus"></i> Crear usuario</span>
+                    <span class="btn-loader" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
+                  </button>
+                </form>
+              </div>
+
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-users-cog"></i> Gestión de Usuarios</h3>
+                <div class="table-responsive">
+                  <table class="data-table" id="adminUsersTable">
+                    <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Creado</th><th>Acciones</th></tr></thead>
+                    <tbody><tr><td colspan="6" class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Técnicos -->
+            <div class="admin-section" id="admin-section-tecnicos" style="display:none;">
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-hard-hat"></i> Técnicos Registrados</h3>
+                <div class="table-responsive">
+                  <table class="data-table" id="adminTechsTable">
+                    <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Creado</th></tr></thead>
+                    <tbody><tr><td colspan="4" class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Solicitudes -->
+            <div class="admin-section" id="admin-section-solicitudes" style="display:none;">
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-clipboard-list"></i> Todas las Solicitudes</h3>
+                <div class="table-responsive">
+                  <table class="data-table" id="adminAllRequestsTable">
+                    <thead><tr><th>ID</th><th>Servicio</th><th>Cliente</th><th>Técnico</th><th>Estado</th><th>Precio</th><th>Fecha</th></tr></thead>
+                    <tbody><tr><td colspan="7" class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagos -->
+            <div class="admin-section" id="admin-section-pagos" style="display:none;">
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-money-check-alt"></i> Pagos a Técnicos</h3>
+                <div class="table-responsive">
+                  <table class="data-table" id="adminPayoutsTable">
+                    <thead><tr><th>Técnico</th><th>Monto</th><th>Periodo</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody><tr><td colspan="5" class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Cargando…</td></tr></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ingresos -->
+            <div class="admin-section" id="admin-section-ingresos" style="display:none;">
+              <div class="dashboard-section glass-card animate-on-scroll">
+                <h3><i class="fas fa-chart-bar"></i> Ingresos por Mes (comisión de la empresa)</h3>
+                <div class="bar-chart" id="revenueChartFull"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -334,86 +440,189 @@ const dashboard = (() => {
   }
 
   async function loadAdminDashboard() {
-    // Stats
+    // Resumen
     try {
-      const stats = await api.get('/admin/stats');
-      document.getElementById('adminTotalUsers').textContent = stats.totalUsers ?? stats.totalUsuarios ?? '-';
-      document.getElementById('adminActiveTechs').textContent = stats.activeTechnicians ?? stats.tecnicosActivos ?? '-';
-      document.getElementById('adminTodayServices').textContent = stats.todayServices ?? stats.serviciosHoy ?? '-';
-      document.getElementById('adminMonthlyRevenue').textContent = `$${(stats.monthlyRevenue ?? stats.ingresosMes ?? 0).toLocaleString('es-CO')}`;
-
-      renderRevenueChart(stats.revenueByMonth || stats.ingresosPorMes || null);
+      const stats = await api.get('/admin/dashboard');
+      document.getElementById('adminTotalUsers').textContent = stats.totalUsers ?? '-';
+      document.getElementById('adminActiveTechs').textContent = stats.activeTechs ?? '-';
+      document.getElementById('adminTotalRevenue').textContent = `$${(stats.totalRevenue ?? 0).toLocaleString('es-CO')}`;
     } catch {
-      ['adminTotalUsers','adminActiveTechs','adminTodayServices'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '-'; });
-      document.getElementById('adminMonthlyRevenue').textContent = '$0';
-      renderRevenueChart(null);
+      ['adminTotalUsers','adminActiveTechs'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
+      const rev = document.getElementById('adminTotalRevenue'); if (rev) rev.textContent = '$0';
     }
 
-    // Requests table
-    try {
-      const data = await api.get('/service-requests?limit=20');
-      const requests = Array.isArray(data) ? data : (data.requests || data.solicitudes || []);
-      const tbody = document.querySelector('#adminRequestsTable tbody');
-      if (tbody) {
-        tbody.innerHTML = requests.length ? requests.map(r => `
-          <tr>
-            <td class="mono">${(r._id || r.id || '').slice(-6)}</td>
-            <td>${r.servicio?.nombre || r.servicioNombre || '-'}</td>
-            <td>${r.cliente?.nombre || r.clienteNombre || '-'}</td>
-            <td>${r.tecnico?.nombre || r.tecnicoNombre || '-'}</td>
-            <td><span class="status-badge status-${r.estado}">${statusLabel(r.estado)}</span></td>
-            <td>${new Date(r.createdAt || r.fecha).toLocaleDateString('es-CO')}</td>
-          </tr>
-        `).join('') : '<tr><td colspan="6" class="empty-state">Sin solicitudes</td></tr>';
-      }
-    } catch {
-      const tbody = document.querySelector('#adminRequestsTable tbody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error cargando solicitudes</td></tr>';
-    }
+    loadAdminRevenue();
+    loadAdminRecentRequests();
+    loadAdminUsers();
+    loadAdminTechnicians();
+    loadAdminAllRequests();
+    loadAdminPayouts();
+  }
 
-    // Users table
+  async function loadAdminRevenue() {
     try {
-      const data = await api.get('/admin/users');
-      const users = Array.isArray(data) ? data : (data.users || data.usuarios || []);
-      const tbody = document.querySelector('#adminUsersTable tbody');
-      if (tbody) {
-        tbody.innerHTML = users.length ? users.map(u => `
-          <tr>
-            <td>${u.nombre || u.name}</td>
-            <td class="mono">${u.email}</td>
-            <td><span class="role-badge role-${u.rol || u.role}">${u.rol || u.role}</span></td>
-            <td><span class="status-badge status-${u.activo || u.active ? 'activo' : 'inactivo'}">${u.activo || u.active ? 'Activo' : 'Inactivo'}</span></td>
-            <td>
-              <button class="btn btn-ghost btn-sm toggle-user-btn" data-id="${u._id || u.id}" data-active="${u.activo ?? u.active ?? true}">
-                <i class="fas ${u.activo || u.active ? 'fa-ban' : 'fa-check'}"></i>
-                ${u.activo || u.active ? 'Desactivar' : 'Activar'}
-              </button>
-            </td>
-          </tr>
-        `).join('') : '<tr><td colspan="5" class="empty-state">Sin usuarios</td></tr>';
-      }
+      const report = await api.get('/admin/revenue'); // [{month, revenue}, ...] más reciente primero
+      const ordered = [...report].reverse();
+      renderRevenueChart(ordered, 'revenueChart');
+      renderRevenueChart(ordered, 'revenueChartFull');
     } catch {
-      const tbody = document.querySelector('#adminUsersTable tbody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Error cargando usuarios</td></tr>';
+      renderRevenueChart([], 'revenueChart');
+      renderRevenueChart([], 'revenueChartFull');
     }
   }
 
-  function renderRevenueChart(data) {
-    const chart = document.getElementById('revenueChart');
+  async function loadAdminRecentRequests() {
+    const tbody = document.querySelector('#adminRecentRequestsTable tbody');
+    if (!tbody) return;
+    try {
+      const requests = await api.get('/admin/requests');
+      const recent = requests.slice(0, 10);
+      tbody.innerHTML = recent.length ? recent.map(adminRequestRow).join('') : '<tr><td colspan="6" class="empty-state">Sin solicitudes</td></tr>';
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error cargando solicitudes</td></tr>';
+    }
+  }
+
+  async function loadAdminAllRequests() {
+    const tbody = document.querySelector('#adminAllRequestsTable tbody');
+    if (!tbody) return;
+    try {
+      const requests = await api.get('/admin/requests');
+      tbody.innerHTML = requests.length ? requests.map(r => `
+        <tr>
+          <td class="mono">#${r.id}</td>
+          <td>${r.service_name || '-'}</td>
+          <td>${r.client_name || '-'}</td>
+          <td>${r.technician_name || '<span class="empty-state-inline">Sin asignar</span>'}</td>
+          <td><span class="status-badge status-${r.status}">${statusLabel(r.status)}</span></td>
+          <td>${r.agreed_price ? `$${Number(r.agreed_price).toLocaleString('es-CO')}` : '-'}</td>
+          <td>${r.created_at ? new Date(r.created_at).toLocaleDateString('es-CO') : '-'}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="7" class="empty-state">Sin solicitudes</td></tr>';
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error cargando solicitudes</td></tr>';
+    }
+  }
+
+  function adminRequestRow(r) {
+    return `
+      <tr>
+        <td class="mono">#${r.id}</td>
+        <td>${r.service_name || '-'}</td>
+        <td>${r.client_name || '-'}</td>
+        <td>${r.technician_name || '<span class="empty-state-inline">Sin asignar</span>'}</td>
+        <td><span class="status-badge status-${r.status}">${statusLabel(r.status)}</span></td>
+        <td>${r.created_at ? new Date(r.created_at).toLocaleDateString('es-CO') : '-'}</td>
+      </tr>
+    `;
+  }
+
+  async function loadAdminUsers() {
+    const tbody = document.querySelector('#adminUsersTable tbody');
+    if (!tbody) return;
+    try {
+      const users = await api.get('/admin/users');
+      tbody.innerHTML = users.length ? users.map(u => `
+        <tr>
+          <td>${u.name}</td>
+          <td class="mono">${u.email}</td>
+          <td>
+            <select class="role-select" data-id="${u.id}">
+              ${['admin','technician','client'].map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${roleLabel(r)}</option>`).join('')}
+            </select>
+          </td>
+          <td><span class="status-badge status-${u.is_active ? 'activo' : 'inactivo'}">${u.is_active ? 'Activo' : 'Inactivo'}</span></td>
+          <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('es-CO') : '-'}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm toggle-user-btn" data-id="${u.id}" data-active="${!!u.is_active}">
+              <i class="fas ${u.is_active ? 'fa-ban' : 'fa-check'}"></i>
+              ${u.is_active ? 'Desactivar' : 'Activar'}
+            </button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="6" class="empty-state">Sin usuarios</td></tr>';
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Error cargando usuarios</td></tr>';
+    }
+  }
+
+  async function loadAdminTechnicians() {
+    const tbody = document.querySelector('#adminTechsTable tbody');
+    if (!tbody) return;
+    try {
+      const users = await api.get('/admin/users');
+      const techs = users.filter(u => u.role === 'technician');
+      tbody.innerHTML = techs.length ? techs.map(u => `
+        <tr>
+          <td>${u.name}</td>
+          <td class="mono">${u.email}</td>
+          <td><span class="status-badge status-${u.is_active ? 'activo' : 'inactivo'}">${u.is_active ? 'Activo' : 'Inactivo'}</span></td>
+          <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('es-CO') : '-'}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="4" class="empty-state">Sin técnicos registrados</td></tr>';
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Error cargando técnicos</td></tr>';
+    }
+  }
+
+  async function loadAdminPayouts() {
+    const tbody = document.querySelector('#adminPayoutsTable tbody');
+    if (!tbody) return;
+    try {
+      const payouts = await api.get('/admin/payouts');
+      tbody.innerHTML = payouts.length ? payouts.map(p => `
+        <tr>
+          <td>${p.technician_name || '-'}</td>
+          <td>$${Number(p.amount || 0).toLocaleString('es-CO')}</td>
+          <td>${p.period || '-'}</td>
+          <td><span class="status-badge status-${p.status}">${payoutStatusLabel(p.status)}</span></td>
+          <td>
+            ${p.status === 'pending' ? `<button class="btn btn-primary btn-sm process-payout-btn" data-id="${p.id}"><i class="fas fa-check"></i> Procesar</button>` : '-'}
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="5" class="empty-state">Sin pagos pendientes</td></tr>';
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Error cargando pagos</td></tr>';
+    }
+  }
+
+  function roleLabel(role) {
+    return { admin: 'Administrador', technician: 'Técnico', client: 'Cliente' }[role] || role;
+  }
+
+  function payoutStatusLabel(status) {
+    return { pending: 'Pendiente', processed: 'Procesado', paid: 'Pagado' }[status] || status;
+  }
+
+  function renderRevenueChart(report, containerId) {
+    const chart = document.getElementById(containerId);
     if (!chart) return;
 
-    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    // Use sample data if none provided
-    const values = data || [1200000, 1800000, 2200000, 1900000, 2800000, 3100000, 2600000, 3400000, 2900000, 3800000, 4200000, 3600000];
+    if (!report || report.length === 0) {
+      chart.innerHTML = '<p class="empty-state"><i class="fas fa-chart-bar"></i> Aún no hay ingresos registrados</p>';
+      return;
+    }
+
+    const values = report.map(r => r.revenue || 0);
     const max = Math.max(...values, 1);
 
-    chart.innerHTML = values.map((v, i) => `
+    chart.innerHTML = report.map(r => `
       <div class="bar-col">
-        <div class="bar-value">$${(v/1000000).toFixed(1)}M</div>
-        <div class="bar" style="height:${(v/max)*100}%"></div>
-        <div class="bar-label">${months[i]}</div>
+        <div class="bar-value">$${((r.revenue || 0) / 1000).toFixed(0)}K</div>
+        <div class="bar" style="height:${((r.revenue || 0) / max) * 100}%"></div>
+        <div class="bar-label">${r.month || '-'}</div>
       </div>
     `).join('');
+  }
+
+  function switchAdminSection(sectionId) {
+    ADMIN_SECTIONS.forEach(s => {
+      const el = document.getElementById(`admin-section-${s.id}`);
+      if (el) el.style.display = s.id === sectionId ? '' : 'none';
+    });
+    document.querySelectorAll('.admin-sidebar-link').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.section === sectionId);
+    });
   }
 
 
@@ -593,10 +802,28 @@ const dashboard = (() => {
       if (toggleUserBtn) {
         const isActive = toggleUserBtn.dataset.active === 'true';
         try {
-          await api.patch(`/admin/users/${toggleUserBtn.dataset.id}`, { activo: !isActive });
+          await api.post(`/admin/users/${toggleUserBtn.dataset.id}/toggle`, { is_active: !isActive });
           window.toast(isActive ? 'Usuario desactivado' : 'Usuario activado', 'info');
-          loadAdminDashboard();
+          loadAdminUsers();
+          loadAdminTechnicians();
         } catch (err) { window.toast(err.message || 'Error', 'error'); }
+      }
+
+      // Process a technician payout (admin)
+      const processPayoutBtn = e.target.closest('.process-payout-btn');
+      if (processPayoutBtn) {
+        if (!confirm('¿Marcar este pago como procesado?')) return;
+        try {
+          await api.post(`/admin/payouts/${processPayoutBtn.dataset.id}/process`);
+          window.toast('Pago procesado', 'success');
+          loadAdminPayouts();
+        } catch (err) { window.toast(err.message || 'Error', 'error'); }
+      }
+
+      // Admin sidebar navigation
+      const sidebarLink = e.target.closest('.admin-sidebar-link');
+      if (sidebarLink) {
+        switchAdminSection(sidebarLink.dataset.section);
       }
 
       // Rate service
@@ -609,6 +836,53 @@ const dashboard = (() => {
       const payBtn = e.target.closest('.pay-request-btn');
       if (payBtn) {
         location.hash = `#payment?amount=${payBtn.dataset.amount}&request=${payBtn.dataset.id}`;
+      }
+    });
+
+    // Change a user's role (admin)
+    document.addEventListener('change', async (e) => {
+      const roleSelect = e.target.closest('.role-select');
+      if (roleSelect) {
+        const newRole = roleSelect.value;
+        try {
+          await api.patch(`/admin/users/${roleSelect.dataset.id}/role`, { role: newRole });
+          window.toast(`Rol actualizado a ${roleLabel(newRole)}`, 'success');
+          loadAdminUsers();
+          loadAdminTechnicians();
+        } catch (err) {
+          window.toast(err.message || 'Error al actualizar el rol', 'error');
+          loadAdminUsers();
+        }
+      }
+    });
+
+    // Create a new user (admin, including other admins)
+    document.addEventListener('submit', async (e) => {
+      const form = e.target.closest('#createUserForm');
+      if (!form) return;
+      e.preventDefault();
+      const btn = form.querySelector('button[type="submit"]');
+      const payload = {
+        name: document.getElementById('newUserName').value.trim(),
+        email: document.getElementById('newUserEmail').value.trim(),
+        password: document.getElementById('newUserPassword').value,
+        role: document.getElementById('newUserRole').value
+      };
+      if (!payload.name || !payload.email || !payload.password) {
+        window.toast('Completa todos los campos', 'warning');
+        return;
+      }
+      auth.toggleBtnLoading(btn, true);
+      try {
+        await api.post('/admin/users', payload);
+        window.toast(`${roleLabel(payload.role)} creado correctamente`, 'success');
+        form.reset();
+        loadAdminUsers();
+        loadAdminTechnicians();
+      } catch (err) {
+        window.toast(err.message || 'Error al crear el usuario', 'error');
+      } finally {
+        auth.toggleBtnLoading(btn, false);
       }
     });
   }
@@ -671,6 +945,8 @@ const dashboard = (() => {
 
   function statusLabel(status) {
     const map = {
+      // Usados por los paneles de cliente/técnico (service_requests en español
+      // — no coinciden con el backend real; ver nota en la respuesta final).
       pendiente: 'Pendiente',
       aceptada: 'Aceptada',
       en_progreso: 'En Progreso',
@@ -678,7 +954,13 @@ const dashboard = (() => {
       cancelada: 'Cancelada',
       rechazada: 'Rechazada',
       activo: 'Activo',
-      inactivo: 'Inactivo'
+      inactivo: 'Inactivo',
+      // Usados por el panel de administración (status real de service_requests).
+      pending: 'Pendiente',
+      accepted: 'Aceptada',
+      in_progress: 'En Progreso',
+      completed: 'Completada',
+      cancelled: 'Cancelada'
     };
     return map[status] || status;
   }
