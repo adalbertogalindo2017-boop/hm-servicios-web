@@ -8,14 +8,14 @@ const { generateToken, generateRefreshToken } = require('../utils/helpers');
 // el script scripts/create-admin.js, ambos reservados a quien ya es admin.
 const PUBLIC_REGISTRATION_ROLES = ['client', 'technician'];
 
-exports.register = (req, res) => {
+exports.register = async (req, res) => {
     try {
         const { name, email, password, phone, address, specialties, description } = req.body;
         const requestedRole = req.body.role;
         const role = PUBLIC_REGISTRATION_ROLES.includes(requestedRole) ? requestedRole : 'client';
 
         // Check if user exists
-        const userExists = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+        const userExists = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (userExists) {
             return res.status(400).json({ success: false, message: 'Email already registered' });
         }
@@ -28,8 +28,8 @@ exports.register = (req, res) => {
         `);
 
         let userId;
-        db.transaction(() => {
-            const result = insertUser.run(name, email, password_hash, phone, address, role);
+        await db.transaction(async () => {
+            const result = await insertUser.run(name, email, password_hash, phone, address, role);
             userId = result.lastInsertRowid;
 
             if (role === 'technician') {
@@ -37,7 +37,7 @@ exports.register = (req, res) => {
                     INSERT INTO technician_profiles (user_id, specialties, description)
                     VALUES (?, ?, ?)
                 `);
-                insertProfile.run(userId, JSON.stringify(specialties || []), description || '');
+                await insertProfile.run(userId, JSON.stringify(specialties || []), description || '');
             }
         })();
 
@@ -49,10 +49,10 @@ exports.register = (req, res) => {
     }
 };
 
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+        const user = await db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
         if (!user || !bcrypt.compareSync(password, user.password_hash)) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -77,9 +77,9 @@ exports.refreshToken = (req, res) => {
     res.status(200).json({ success: true, message: 'Token refreshed' });
 };
 
-exports.getProfile = (req, res) => {
+exports.getProfile = async (req, res) => {
     try {
-        const user = db.prepare('SELECT id, name, email, phone, address, role, avatar FROM users WHERE id = ?').get(req.user.id);
+        const user = await db.prepare('SELECT id, name, email, phone, address, role, avatar FROM users WHERE id = ?').get(req.user.id);
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
         res.json({ success: true, data: user });
     } catch (error) {
@@ -87,10 +87,10 @@ exports.getProfile = (req, res) => {
     }
 };
 
-exports.updateProfile = (req, res) => {
+exports.updateProfile = async (req, res) => {
     try {
         const { name, phone, address } = req.body;
-        db.prepare('UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ?')
+        await db.prepare('UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ?')
           .run(name, phone, address, req.user.id);
         res.json({ success: true, message: 'Profile updated' });
     } catch (error) {

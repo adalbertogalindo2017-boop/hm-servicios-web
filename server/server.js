@@ -10,8 +10,23 @@ const { initializeDatabase } = require('./config/database');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize database
-initializeDatabase();
+// Initialize database (ahora asíncrono: @libsql/client habla por red/archivo
+// de forma no bloqueante). Guardamos la promesa y la esperamos antes de
+// atender cualquier request — tanto en un server local de toda la vida
+// como en una función serverless de Vercel (donde esta misma promesa ya
+// resuelta se reutiliza en invocaciones posteriores del mismo contenedor "tibio").
+const dbReadyPromise = initializeDatabase();
+dbReadyPromise.catch((err) => {
+    console.error('❌ Error inicializando la base de datos:', err);
+});
+
+app.use((req, res, next) => {
+    dbReadyPromise
+        .then(() => next())
+        .catch((err) => {
+            res.status(503).json({ success: false, message: 'Base de datos no disponible, intenta de nuevo en un momento.' });
+        });
+});
 
 // Security and basic middlewares
 app.use(helmet());
@@ -50,9 +65,16 @@ app.use((err, req, res, next) => {
 // módulo como un handler de petición/respuesta (no necesita que el proceso
 // escuche un puerto), así que `app.listen` solo se ejecuta fuera de Vercel.
 if (!process.env.VERCEL) {
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-    });
+    dbReadyPromise
+        .then(() => {
+            app.listen(PORT, () => {
+                console.log(`🚀 Server running on port ${PORT}`);
+            });
+        })
+        .catch(() => {
+            console.error('🚫 El servidor no se inició porque la base de datos falló al inicializar.');
+            process.exit(1);
+        });
 }
 
 module.exports = app;

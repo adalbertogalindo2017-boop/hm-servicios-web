@@ -53,14 +53,14 @@ function generateTransactionId() {
 
 /**
  * Aplica paginación a una consulta SQL y devuelve resultados + metadatos.
- * @param {import('better-sqlite3').Database} db - Instancia de la base de datos.
+ * @param {object} db - Instancia de la base de datos (shim async sobre @libsql/client).
  * @param {string} query - Consulta SQL base (sin LIMIT/OFFSET).
  * @param {Array} params - Parámetros de la consulta.
  * @param {number} [page=1] - Página actual (1-indexed).
  * @param {number} [limit=10] - Resultados por página.
- * @returns {{ data: Array, pagination: Object }} Resultados paginados.
+ * @returns {Promise<{ data: Array, pagination: Object }>} Resultados paginados.
  */
-function paginateResults(db, query, params = [], page = 1, limit = 10) {
+async function paginateResults(db, query, params = [], page = 1, limit = 10) {
   // Ensure valid positive integers
   page = Math.max(1, parseInt(page, 10) || 1);
   limit = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
@@ -68,11 +68,11 @@ function paginateResults(db, query, params = [], page = 1, limit = 10) {
 
   // Count total rows using a subquery
   const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
-  const { total } = db.prepare(countQuery).get(...params);
+  const { total } = await db.prepare(countQuery).get(...params);
 
   // Fetch the requested page
   const paginatedQuery = `${query} LIMIT ? OFFSET ?`;
-  const data = db.prepare(paginatedQuery).all(...params, limit, offset);
+  const data = await db.prepare(paginatedQuery).all(...params, limit, offset);
 
   return {
     data,

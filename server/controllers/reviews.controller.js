@@ -1,6 +1,6 @@
 const { db } = require('../config/database');
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     try {
         const { service_request_id, rating, comment } = req.body;
 
@@ -10,34 +10,34 @@ exports.create = (req, res) => {
         // de columna: la consulta lanzaba "no such column: paid" en vez de
         // simplemente no encontrar la fila. Una reseña solo debería poder
         // crearse una vez que el servicio está 'completed'.
-        const request = db.prepare("SELECT technician_id FROM service_requests WHERE id = ? AND client_id = ? AND status = 'completed'").get(service_request_id, req.user.id);
+        const request = await db.prepare("SELECT technician_id FROM service_requests WHERE id = ? AND client_id = ? AND status = 'completed'").get(service_request_id, req.user.id);
 
         if (!request) return res.status(400).json({ success: false, message: 'Solicitud inválida o el servicio aún no está completado' });
-        
-        db.transaction(() => {
-            db.prepare(`
+
+        await db.transaction(async () => {
+            await db.prepare(`
                 INSERT INTO reviews (service_request_id, client_id, technician_id, rating, comment)
                 VALUES (?, ?, ?, ?, ?)
             `).run(service_request_id, req.user.id, request.technician_id, rating, comment);
-            
+
             // Update technician average rating
-            const stats = db.prepare('SELECT AVG(rating) as avg, COUNT(rating) as count FROM reviews WHERE technician_id = ?').get(request.technician_id);
-            db.prepare('UPDATE technician_profiles SET rating_avg = ?, total_services = ? WHERE user_id = ?')
+            const stats = await db.prepare('SELECT AVG(rating) as avg, COUNT(rating) as count FROM reviews WHERE technician_id = ?').get(request.technician_id);
+            await db.prepare('UPDATE technician_profiles SET rating_avg = ?, total_services = ? WHERE user_id = ?')
               .run(stats.avg || 0, stats.count || 0, request.technician_id);
         })();
 
         res.status(201).json({ success: true, message: 'Review created' });
     } catch (error) {
-        if(error.message.includes('UNIQUE constraint')) {
+        if (error.message && error.message.includes('UNIQUE constraint')) {
              return res.status(400).json({ success: false, message: 'Review already exists for this service' });
         }
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
-exports.getByTechnician = (req, res) => {
+exports.getByTechnician = async (req, res) => {
     try {
-        const reviews = db.prepare(`
+        const reviews = await db.prepare(`
             SELECT r.*, u.name as client_name
             FROM reviews r
             JOIN users u ON r.client_id = u.id

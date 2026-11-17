@@ -48,14 +48,14 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
  * Busca técnicos disponibles dentro de un radio dado.
  * Usa la fórmula de Haversine para filtrar y ordenar por distancia.
  *
- * @param {import('better-sqlite3').Database} db - Instancia de la base de datos.
+ * @param {object} db - Instancia de la base de datos (shim async sobre @libsql/client).
  * @param {number} lat - Latitud del cliente.
  * @param {number} lng - Longitud del cliente.
  * @param {number} [radiusKm=10] - Radio máximo de búsqueda en km.
  * @param {string} [category] - Categoría de servicio opcional para filtrar.
- * @returns {Array<Object>} Lista de técnicos con distancia, ordenados de más cercano a más lejano.
+ * @returns {Promise<Array<Object>>} Lista de técnicos con distancia, ordenados de más cercano a más lejano.
  */
-function findNearbyTechnicians(db, lat, lng, radiusKm = 10, category = null) {
+async function findNearbyTechnicians(db, lat, lng, radiusKm = 10, category = null) {
   // Fetch all available technicians with their coordinates
   const query = `
     SELECT
@@ -81,7 +81,7 @@ function findNearbyTechnicians(db, lat, lng, radiusKm = 10, category = null) {
       AND u.longitude IS NOT NULL
   `;
 
-  const technicians = db.prepare(query).all();
+  const technicians = await db.prepare(query).all();
 
   // Calculate distance for each technician and filter by radius
   const nearby = technicians

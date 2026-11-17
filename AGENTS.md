@@ -1,10 +1,11 @@
 # AGENTS.md — H&M Servicios
 
 ## Stack
-- **Backend:** Node.js, Express, better-sqlite3, JWT auth
+- **Backend:** Node.js, Express, @libsql/client, JWT auth
 - **Frontend:** Vanilla JS SPA (no framework), served from `public/`
-- **DB:** SQLite (WAL mode), auto-creates and seeds at first start
-- **No ORM** — raw SQL queries with better-sqlite3
+- **DB:** Turso (libSQL) when `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` are set; otherwise a local SQLite file (same client, `file:` mode). Auto-creates and seeds at first start.
+- **No ORM** — raw SQL queries through `server/config/database.js`'s `db` shim (async: `await db.prepare(sql).get/.all/.run(...)`, `await db.transaction(fn)()`)
+- Migrated off `better-sqlite3` (Nov 2026): it's a native module that failed to compile on Vercel's build image, and even when it built, `/tmp` on Vercel serverless isn't persistent or shared across instances, so data kept disappearing. `@libsql/client` fixes both: no native compile, and Turso is a real persistent remote DB.
 
 ## Commands
 | Command | Action |
@@ -22,7 +23,9 @@
 3. `npm run setup`
 4. `npm run dev`
 
-DB auto-creates at `DB_PATH` (default `./data/hm_servicios.db`). No migrations needed.
+Without `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` set, DB auto-creates at `DB_PATH` (default `./data/hm_servicios.db`) as a local SQLite file. With them set, it connects to the real Turso database instead — same schema, same code path. No migrations needed either way (`CREATE TABLE IF NOT EXISTS` + seed only runs when `users` is empty).
+
+In production (Vercel), `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` must be set as project environment variables — without them, Vercel silently falls back to the non-persistent `/tmp` SQLite file (a startup warning is logged when this happens with `VERCEL` set).
 
 ## Architecture
 ```
@@ -62,6 +65,8 @@ All under `/api/`: `/auth`, `/services`, `/technicians` (includes `/nearby`), `/
 - **No `.gitignore`** — be careful not to commit `data/`, `.env`, `node_modules/`
 - `HM-Sistema/` is a separate standalone static dashboard — not wired into the Express app
 - `scripts/copy-assets.js` has a hardcoded absolute source path — will fail if run outside original machine; only copies a PNG
-- DB seed only runs when `users` table is empty (safe to delete `data/hm_servicios.db` to reset)
+- DB seed only runs when `users` table is empty (safe to delete `data/hm_servicios.db` to reset locally; against Turso, drop the tables instead)
+- `db.prepare(sql).get/.all/.run()` and `db.transaction(fn)()` are all **async** now — every call site must `await`. The transaction shim uses `AsyncLocalStorage` so `db.prepare(...).run()` calls made inside a `db.transaction(async () => {...})` closure automatically route to that same libSQL transaction.
+- `undefined` bind params (an optional body field the client didn't send) are normalized to `null` inside the shim before hitting `@libsql/client`, which otherwise throws on `undefined`.
 - Commission rate: 15% (company) / 85% (technician) from `COMPANY_COMMISSION_RATE` env var
 - Rate limit: 100 requests per 15 min on `/api/*`

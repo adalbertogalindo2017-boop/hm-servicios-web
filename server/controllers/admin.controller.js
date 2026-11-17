@@ -1,43 +1,43 @@
 const { db } = require('../config/database');
 const bcrypt = require('bcryptjs');
 
-exports.getDashboard = (req, res) => {
+exports.getDashboard = async (req, res) => {
     try {
-        const totalUsers = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
-        const activeTechs = db.prepare("SELECT COUNT(*) as count FROM technician_profiles WHERE is_available = 1").get().count;
-        const totalRevenueRow = db.prepare("SELECT SUM(company_commission) as total FROM payments WHERE payment_status = 'completed'").get();
+        const totalUsers = (await db.prepare("SELECT COUNT(*) as count FROM users").get()).count;
+        const activeTechs = (await db.prepare("SELECT COUNT(*) as count FROM technician_profiles WHERE is_available = 1").get()).count;
+        const totalRevenueRow = await db.prepare("SELECT SUM(company_commission) as total FROM payments WHERE payment_status = 'completed'").get();
         const totalRevenue = totalRevenueRow.total || 0;
-        
+
         res.json({ success: true, data: { totalUsers, activeTechs, totalRevenue } });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
-exports.getAllUsers = (req, res) => {
+exports.getAllUsers = async (req, res) => {
     try {
-        const users = db.prepare('SELECT id, name, email, role, is_active, created_at FROM users').all();
+        const users = await db.prepare('SELECT id, name, email, role, is_active, created_at FROM users').all();
         res.json({ success: true, data: users });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
-exports.toggleUserStatus = (req, res) => {
+exports.toggleUserStatus = async (req, res) => {
     try {
         const { is_active } = req.body;
-        db.prepare('UPDATE users SET is_active = ? WHERE id = ?').run(is_active ? 1 : 0, req.params.id);
+        await db.prepare('UPDATE users SET is_active = ? WHERE id = ?').run(is_active ? 1 : 0, req.params.id);
         res.json({ success: true, message: 'User status toggled' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
-exports.getPayouts = (req, res) => {
+exports.getPayouts = async (req, res) => {
     try {
-        const payouts = db.prepare(`
-            SELECT tp.*, u.name as technician_name 
-            FROM technician_payouts tp 
+        const payouts = await db.prepare(`
+            SELECT tp.*, u.name as technician_name
+            FROM technician_payouts tp
             JOIN users u ON tp.technician_id = u.id
         `).all();
         res.json({ success: true, data: payouts });
@@ -46,18 +46,18 @@ exports.getPayouts = (req, res) => {
     }
 };
 
-exports.processPayout = (req, res) => {
+exports.processPayout = async (req, res) => {
     try {
-        db.prepare("UPDATE technician_payouts SET status = 'processed', paid_date = datetime('now') WHERE id = ?").run(req.params.id);
+        await db.prepare("UPDATE technician_payouts SET status = 'processed', paid_date = datetime('now') WHERE id = ?").run(req.params.id);
         res.json({ success: true, message: 'Payout processed' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
-exports.getRevenueReport = (req, res) => {
+exports.getRevenueReport = async (req, res) => {
     try {
-        const report = db.prepare(`
+        const report = await db.prepare(`
             SELECT strftime('%Y-%m', created_at) as month, SUM(company_commission) as revenue
             FROM payments
             WHERE payment_status = 'completed'
@@ -74,9 +74,9 @@ exports.getRevenueReport = (req, res) => {
 // restricción de "solo las mías" que aplica requests.controller.js para
 // clientes/técnicos). Antes no existía ninguna ruta admin para esto, por lo
 // que un admin recibía 403 al intentar ver todas las solicitudes.
-exports.getAllRequests = (req, res) => {
+exports.getAllRequests = async (req, res) => {
     try {
-        const requests = db.prepare(`
+        const requests = await db.prepare(`
             SELECT sr.*,
                    c.name as client_name, c.email as client_email,
                    t.name as technician_name,
@@ -96,7 +96,7 @@ exports.getAllRequests = (req, res) => {
 // Crea un usuario con cualquier rol, incluido 'admin'. Esta es la única vía
 // (junto con scripts/create-admin.js) para obtener un administrador: el
 // registro público (auth.controller.js) nunca acepta 'admin'.
-exports.createUser = (req, res) => {
+exports.createUser = async (req, res) => {
     try {
         const { name, email, password, phone, address, role } = req.body;
         const allowedRoles = ['client', 'technician', 'admin'];
@@ -108,7 +108,7 @@ exports.createUser = (req, res) => {
             return res.status(400).json({ success: false, message: `Rol inválido. Debe ser uno de: ${allowedRoles.join(', ')}` });
         }
 
-        const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+        const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(email);
         if (existing) {
             return res.status(409).json({ success: false, message: 'Ya existe un usuario con ese email' });
         }
@@ -118,20 +118,20 @@ exports.createUser = (req, res) => {
             INSERT INTO users (name, email, password_hash, phone, address, role, is_active)
             VALUES (?, ?, ?, ?, ?, ?, 1)
         `);
-        const result = insertUser.run(name, email, password_hash, phone || null, address || null, role);
+        const result = await insertUser.run(name, email, password_hash, phone || null, address || null, role);
 
         if (role === 'technician') {
             // specialties se guarda como JSON (ver technicians.controller.js#getAll,
             // que hace JSON.parse sobre esta columna) — un string vacío no es JSON
             // válido y rompía ese endpoint.
             const specialtiesJson = JSON.stringify(Array.isArray(req.body.specialties) ? req.body.specialties : []);
-            db.prepare(`
+            await db.prepare(`
                 INSERT INTO technician_profiles (user_id, specialties, description, is_available)
                 VALUES (?, ?, ?, 1)
             `).run(result.lastInsertRowid, specialtiesJson, req.body.description || '');
         }
 
-        const newUser = db.prepare('SELECT id, name, email, role, is_active, created_at FROM users WHERE id = ?').get(result.lastInsertRowid);
+        const newUser = await db.prepare('SELECT id, name, email, role, is_active, created_at FROM users WHERE id = ?').get(result.lastInsertRowid);
         res.status(201).json({ success: true, message: 'Usuario creado', data: newUser });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error' });
@@ -141,7 +141,7 @@ exports.createUser = (req, res) => {
 // Cambia el rol de un usuario existente (p. ej. promover un cliente/técnico
 // a admin, o degradar un admin). Un admin no puede quitarse su propio rol de
 // admin para evitar que la cuenta se quede sin ningún administrador activo.
-exports.updateUserRole = (req, res) => {
+exports.updateUserRole = async (req, res) => {
     try {
         const { role } = req.body;
         const targetId = Number(req.params.id);
@@ -151,7 +151,7 @@ exports.updateUserRole = (req, res) => {
             return res.status(400).json({ success: false, message: `Rol inválido. Debe ser uno de: ${allowedRoles.join(', ')}` });
         }
 
-        const target = db.prepare('SELECT id, role FROM users WHERE id = ?').get(targetId);
+        const target = await db.prepare('SELECT id, role FROM users WHERE id = ?').get(targetId);
         if (!target) {
             return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
         }
@@ -160,19 +160,19 @@ exports.updateUserRole = (req, res) => {
             return res.status(400).json({ success: false, message: 'No puedes quitarte tu propio rol de administrador' });
         }
 
-        db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, targetId);
+        await db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, targetId);
 
         if (role === 'technician') {
-            const hasProfile = db.prepare('SELECT id FROM technician_profiles WHERE user_id = ?').get(targetId);
+            const hasProfile = await db.prepare('SELECT id FROM technician_profiles WHERE user_id = ?').get(targetId);
             if (!hasProfile) {
-                db.prepare(`
+                await db.prepare(`
                     INSERT INTO technician_profiles (user_id, specialties, description, is_available)
                     VALUES (?, '[]', '', 1)
                 `).run(targetId);
             }
         }
 
-        const updated = db.prepare('SELECT id, name, email, role, is_active, created_at FROM users WHERE id = ?').get(targetId);
+        const updated = await db.prepare('SELECT id, name, email, role, is_active, created_at FROM users WHERE id = ?').get(targetId);
         res.json({ success: true, message: 'Rol actualizado', data: updated });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error' });
