@@ -3,10 +3,16 @@ const { db } = require('../config/database');
 exports.create = (req, res) => {
     try {
         const { service_request_id, rating, comment } = req.body;
-        
-        const request = db.prepare('SELECT technician_id FROM service_requests WHERE id = ? AND client_id = ? AND status = "paid"').get(service_request_id, req.user.id);
-        
-        if (!request) return res.status(400).json({ success: false, message: 'Invalid request or not paid yet' });
+
+        // 'paid' nunca fue un status válido de service_requests (el CHECK solo
+        // permite pending/accepted/in_progress/completed/cancelled) y además la
+        // comparación usaba comillas dobles, que SQLite trata como identificador
+        // de columna: la consulta lanzaba "no such column: paid" en vez de
+        // simplemente no encontrar la fila. Una reseña solo debería poder
+        // crearse una vez que el servicio está 'completed'.
+        const request = db.prepare("SELECT technician_id FROM service_requests WHERE id = ? AND client_id = ? AND status = 'completed'").get(service_request_id, req.user.id);
+
+        if (!request) return res.status(400).json({ success: false, message: 'Solicitud inválida o el servicio aún no está completado' });
         
         db.transaction(() => {
             db.prepare(`
