@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Plataforma web H&M Servicios - Gasodomésticos y Obra Civil",
   "main": "server/server.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
@@ -11,7 +14,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "better-sqlite3": "^9.4.3",
+    "better-sqlite3": "^13.2.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "helmet": "^7.1.0",
