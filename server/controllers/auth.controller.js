@@ -52,9 +52,31 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        // DEBUG TEMPORAL: diagnosticar por qué el login falla en producción
+        // con credenciales que sabemos correctas en la base de datos. No se
+        // registra la contraseña, solo su presencia/longitud y el email.
+        console.log('[login debug]', {
+            bodyKeys: Object.keys(req.body || {}),
+            emailReceived: email,
+            emailType: typeof email,
+            passwordType: typeof password,
+            passwordLength: typeof password === 'string' ? password.length : null,
+            contentType: req.headers['content-type']
+        });
+
         const user = await db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
-        if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+        console.log('[login debug] user found:', !!user, user ? { id: user.id, email: user.email, hashLen: user.password_hash.length } : null);
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        const passwordMatches = bcrypt.compareSync(password, user.password_hash);
+        console.log('[login debug] password matches:', passwordMatches);
+
+        if (!passwordMatches) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
