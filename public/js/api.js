@@ -20,10 +20,17 @@ const api = (() => {
     return headers;
   }
 
+  // Endpoints de autenticación: un 401 aquí significa "credenciales inválidas",
+  // no "tu sesión expiró" (todavía no hay sesión que pueda haber expirado).
+  // Tratarlos igual que cualquier otro 401 hacía que un simple error de
+  // contraseña al iniciar sesión mostrara el mensaje confuso de "sesión
+  // expirada" y además disparara un logout/recarga innecesarios.
+  const AUTH_ENDPOINTS = ['/auth/login', '/auth/register'];
+
   /** Centralised response handler */
-  async function handleResponse(res) {
-    // Try to refresh on 401
-    if (res.status === 401) {
+  async function handleResponse(res, url) {
+    // Try to refresh on 401 — pero no para los propios endpoints de login/registro
+    if (res.status === 401 && !AUTH_ENDPOINTS.includes(url)) {
       const refreshed = await tryRefreshToken();
       if (refreshed) {
         // Retry original request (caller should handle)
@@ -95,7 +102,7 @@ const api = (() => {
     if (body) opts.body = JSON.stringify(body);
 
     const res = await fetch(`${BASE_URL}${url}`, opts);
-    const result = await handleResponse(res);
+    const result = await handleResponse(res, url);
 
     // Retry once after a token refresh
     if (result && result.__retry && attempt < 1) {
@@ -124,7 +131,7 @@ const api = (() => {
         headers,
         body: formData
       });
-      return handleResponse(res);
+      return handleResponse(res, url);
     }
   };
 })();
