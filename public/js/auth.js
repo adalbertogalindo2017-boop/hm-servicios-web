@@ -95,7 +95,9 @@ const auth = (() => {
   async function handleLogin(e) {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
-    const email = document.getElementById('loginEmail').value.trim();
+    // Algunos navegadores anteponen "mailto:" al autocompletar este campo;
+    // se limpia aquí además de en el servidor, por seguridad adicional.
+    const email = document.getElementById('loginEmail').value.trim().replace(/^mailto:/i, '').trim();
     const password = document.getElementById('loginPassword').value;
 
     if (!email || !password) {
@@ -233,7 +235,7 @@ const auth = (() => {
     const role = document.getElementById('registerRole').value;
     const payload = {
       name: document.getElementById('regName').value.trim(),
-      email: document.getElementById('regEmail').value.trim(),
+      email: document.getElementById('regEmail').value.trim().replace(/^mailto:/i, '').trim(),
       phone: document.getElementById('regPhone').value.trim(),
       password: document.getElementById('regPassword').value,
       role
