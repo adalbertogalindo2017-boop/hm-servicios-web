@@ -100,7 +100,10 @@ const auth = (() => {
               <span class="btn-loader" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
             </button>
           </form>
-          <p class="auth-footer">¿No tienes cuenta? <a href="#register">Regístrate aquí</a></p>
+          <p class="auth-footer">
+            <a href="#forgot-password">¿Olvidaste tu contraseña?</a><br/>
+            ¿No tienes cuenta? <a href="#register">Regístrate aquí</a>
+          </p>
         </div>
       </section>
     `;
@@ -189,8 +192,8 @@ const auth = (() => {
               <div class="form-group">
                 <div class="input-wrapper">
                   <i class="fas fa-lock input-icon"></i>
-                  <input type="password" id="regPassword" placeholder=" " required minlength="6" />
-                  <label for="regPassword">Contraseña (mín. 6 caracteres)</label>
+                  <input type="password" id="regPassword" placeholder=" " required minlength="8" />
+                  <label for="regPassword">Contraseña (mín. 8 car., mayúscula, minúscula, número y símbolo)</label>
                 </div>
               </div>
             </div>
@@ -259,16 +262,15 @@ const auth = (() => {
       window.toast('Por favor completa todos los campos obligatorios', 'warning');
       return;
     }
-    // NOTA: server/middleware/validation.js define reglas de contraseña más
-    // estrictas (mín. 8, mayúscula, minúscula, número, símbolo) pero NO
-    // están conectadas en server/routes/auth.routes.js — la ruta real de
-    // registro no les pasa por ningún middleware de validación. El límite
-    // real del servidor es "ninguno" (bcrypt acepta cualquier string), así
-    // que aquí se mantiene solo el mínimo de 6 caracteres que ya existía
-    // para evitar contraseñas triviales, sin inventar una exigencia que el
-    // backend no aplica.
-    if (payload.password.length < 6) {
-      window.toast('La contraseña debe tener al menos 6 caracteres', 'warning');
+    // server/middleware/validation.js (registerRules) ahora sí está
+    // conectado a POST /auth/register, y exige mín. 8 caracteres con
+    // mayúscula, minúscula, número y símbolo. Esta comprobación en el
+    // cliente es solo para dar feedback inmediato sin esperar al servidor;
+    // los mensajes detallados de cada regla (cuál falta exactamente) los
+    // muestra el servidor vía auth.describeApiError si esta pasa pero esa
+    // no.
+    if (payload.password.length < 8) {
+      window.toast('La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula, número y símbolo', 'warning');
       return;
     }
 
@@ -287,6 +289,84 @@ const auth = (() => {
       location.hash = role === 'technician' ? '#tech-dashboard' : '#client-dashboard';
     } catch (err) {
       window.toast(describeApiError(err, 'Error al crear la cuenta'), 'error');
+    } finally {
+      toggleBtnLoading(btn, false);
+    }
+  }
+
+  // ── Recuperar contraseña (sin correo, por email + teléfono) ──
+  // No hay servicio de correo (SMTP/Resend/SendGrid) configurado en este
+  // proyecto, así que en vez de un enlace enviado por email, la identidad
+  // se confirma con el email Y el teléfono que quedaron registrados, y en
+  // el mismo paso se fija la nueva contraseña. Si más adelante se agrega
+  // un proveedor de correo con sus propias credenciales, este formulario
+  // se puede cambiar por el flujo clásico de "te enviamos un enlace".
+
+  function renderForgotPassword() {
+    return `
+      <section class="auth-section">
+        <div class="auth-card glass-card">
+          <div class="auth-header">
+            <div class="auth-icon"><i class="fas fa-key"></i></div>
+            <h2>Recuperar Contraseña</h2>
+            <p>Confirma el correo y el teléfono con los que te registraste para fijar una nueva contraseña.</p>
+          </div>
+          <form id="forgotPasswordForm" class="auth-form" novalidate>
+            <div class="form-group">
+              <div class="input-wrapper">
+                <i class="fas fa-envelope input-icon"></i>
+                <input type="email" id="fpEmail" placeholder=" " required />
+                <label for="fpEmail">Correo electrónico</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="input-wrapper">
+                <i class="fas fa-phone input-icon"></i>
+                <input type="tel" id="fpPhone" placeholder=" " required />
+                <label for="fpPhone">Teléfono registrado</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="input-wrapper">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="fpNewPassword" placeholder=" " required minlength="8" />
+                <label for="fpNewPassword">Nueva contraseña (mín. 8 car., mayúscula, minúscula, número y símbolo)</label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              <span class="btn-text">Actualizar Contraseña</span>
+              <span class="btn-loader" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+          </form>
+          <p class="auth-footer">¿Ya la recordaste? <a href="#login">Inicia sesión</a></p>
+        </div>
+      </section>
+    `;
+  }
+
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const email = document.getElementById('fpEmail').value.trim().replace(/^mailto:/i, '').trim();
+    const phone = document.getElementById('fpPhone').value.trim();
+    const newPassword = document.getElementById('fpNewPassword').value;
+
+    if (!email || !phone || !newPassword) {
+      window.toast('Por favor completa todos los campos', 'warning');
+      return;
+    }
+    if (newPassword.length < 8) {
+      window.toast('La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula, número y símbolo', 'warning');
+      return;
+    }
+
+    toggleBtnLoading(btn, true);
+    try {
+      await api.post('/auth/forgot-password', { email, phone, newPassword });
+      window.toast('Contraseña actualizada. Ya puedes iniciar sesión.', 'success');
+      location.hash = '#login';
+    } catch (err) {
+      window.toast(describeApiError(err, 'No pudimos actualizar la contraseña'), 'error');
     } finally {
       toggleBtnLoading(btn, false);
     }
@@ -319,8 +399,10 @@ const auth = (() => {
   return {
     renderLogin,
     renderRegister,
+    renderForgotPassword,
     handleLogin,
     handleRegister,
+    handleForgotPassword,
     initRegisterEvents,
     logout,
     updateNav,

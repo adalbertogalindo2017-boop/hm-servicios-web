@@ -49,9 +49,21 @@ const registerRules = [
 
   body('email')
     .trim()
+    // Quita un posible prefijo "mailto:" ANTES de isEmail(): algunos
+    // navegadores/gestores de contraseñas lo anteponen al autocompletar, y
+    // si isEmail() lo ve primero, rechaza el correo como "no válido" antes
+    // de que el controlador alcance a limpiarlo — esto reintrodujo en vivo
+    // el mismo bug de login que ya se había corregido antes en esta sesión.
+    .customSanitizer((v) => (typeof v === 'string' ? v.replace(/^mailto:/i, '').trim() : v))
     .notEmpty().withMessage('El correo electrónico es obligatorio.')
-    .isEmail().withMessage('Correo electrónico no válido.')
-    .normalizeEmail(),
+    .isEmail().withMessage('Correo electrónico no válido.'),
+    // Sin .normalizeEmail(): por defecto express-validator quita los puntos
+    // de direcciones Gmail (p.ej. "maria.gomez@gmail.com" →
+    // "mariagomez@gmail.com") y así mutaría req.body.email antes de llegar
+    // al controlador. auth.controller.js ya tiene su propia normalización
+    // (trim + quitar "mailto:" + minúsculas) para hacer login/registro
+    // consistentes; duplicarla aquí con reglas distintas rompería el login
+    // de cualquier cuenta Gmail con puntos.
 
   body('password')
     .notEmpty().withMessage('La contraseña es obligatoria.')
@@ -82,12 +94,46 @@ const registerRules = [
 const loginRules = [
   body('email')
     .trim()
+    // Mismo motivo que en registerRules: quitar "mailto:" antes de
+    // isEmail() para no romper el login cuando el navegador lo antepone.
+    .customSanitizer((v) => (typeof v === 'string' ? v.replace(/^mailto:/i, '').trim() : v))
     .notEmpty().withMessage('El correo electrónico es obligatorio.')
-    .isEmail().withMessage('Correo electrónico no válido.')
-    .normalizeEmail(),
+    .isEmail().withMessage('Correo electrónico no válido.'),
+    // Sin .normalizeEmail(): mismo motivo que en registerRules (evitar
+    // mutar el email con reglas distintas a las de auth.controller.js).
 
   body('password')
     .notEmpty().withMessage('La contraseña es obligatoria.'),
+
+  handleValidationErrors,
+];
+
+/**
+ * Validación para la recuperación de contraseña self-service (sin correo):
+ * el usuario demuestra ser el dueño de la cuenta confirmando el email Y el
+ * teléfono que quedaron registrados, y en la misma petición fija la nueva
+ * contraseña. No hay servicio de correo configurado en el proyecto, así que
+ * esta es la verificación de identidad disponible sin agregar un proveedor
+ * de email (Resend/SendGrid/SMTP) con sus propias credenciales.
+ */
+const forgotPasswordRules = [
+  body('email')
+    .trim()
+    .customSanitizer((v) => (typeof v === 'string' ? v.replace(/^mailto:/i, '').trim() : v))
+    .notEmpty().withMessage('El correo electrónico es obligatorio.')
+    .isEmail().withMessage('Correo electrónico no válido.'),
+
+  body('phone')
+    .trim()
+    .notEmpty().withMessage('El teléfono registrado es obligatorio.'),
+
+  body('newPassword')
+    .notEmpty().withMessage('La nueva contraseña es obligatoria.')
+    .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres.')
+    .matches(/[A-Z]/).withMessage('La contraseña debe contener al menos una mayúscula.')
+    .matches(/[a-z]/).withMessage('La contraseña debe contener al menos una minúscula.')
+    .matches(/\d/).withMessage('La contraseña debe contener al menos un número.')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('La contraseña debe contener al menos un carácter especial.'),
 
   handleValidationErrors,
 ];
@@ -229,6 +275,7 @@ module.exports = {
   handleValidationErrors,
   registerRules,
   loginRules,
+  forgotPasswordRules,
   serviceRules,
   serviceRequestRules,
   reviewRules,
