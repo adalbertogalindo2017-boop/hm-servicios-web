@@ -734,6 +734,15 @@ const dashboard = (() => {
     // Pre-select service from params
     if (params.service) select.value = params.service;
 
+    // Viene del catálogo desplegable sin un servicio exacto en el catálogo:
+    // se precarga la nota con el tipo de servicio que el cliente busca para
+    // que el técnico/admin sepa qué cotizar, y el cliente elige manualmente
+    // el servicio más parecido en el selector.
+    if (params.label) {
+      const notesField = document.getElementById('bookNotes');
+      if (notesField) notesField.value = `Servicio de interés: ${params.label}. `;
+    }
+
     // Form submit
     const form = document.getElementById('bookingForm');
     if (form) {

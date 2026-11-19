@@ -23,6 +23,78 @@ const services = (() => {
 
   let servicesList = [];
 
+  // ── Catálogo por tipo de servicio (pestaña desplegable) ──────
+  // Agrupa los servicios existentes por el tipo específico que el
+  // cliente busca (plomería, gas, obra blanca, pintura, mantenimiento
+  // de calentadores/estufa/horno/secadora, construcción y remodelación),
+  // para que cada persona pueda escoger directamente el servicio
+  // adecuado en vez de navegar solo por las dos categorías generales.
+  const catalogGroups = [
+    { key: 'plomeria',      label: 'Plomería',                         icon: 'faucet-drip',     keywords: ['plomer', 'tuber', 'griferia', 'desague', 'desagüe', 'sanitario', 'lavaplatos', 'goter'] },
+    { key: 'gas',           label: 'Instalaciones y Fugas de Gas',     icon: 'fire',             keywords: ['de gas', 'gasista'] },
+    { key: 'obra_blanca',   label: 'Obra Blanca y Acabados',          icon: 'hard-hat',         keywords: ['obra blanca', 'drywall', 'enchape', 'pañete', 'panete', 'muro', 'cielo raso', 'acabado', 'albañil', 'albanil'] },
+    { key: 'pintura',       label: 'Pintura',                          icon: 'paint-roller',     keywords: ['pintura', 'pintar'] },
+    { key: 'calentadores',  label: 'Mantenimiento de Calentadores',    icon: 'temperature-high', keywords: ['calentador'] },
+    { key: 'estufa',        label: 'Estufa',                           icon: 'fire-burner',      keywords: ['estufa'] },
+    { key: 'horno',         label: 'Horno',                            icon: 'box',              keywords: ['horno'] },
+    { key: 'secadora',      label: 'Secadora',                         icon: 'wind',             keywords: ['secadora'] },
+    { key: 'construccion',  label: 'Construcción y Remodelación Integral', icon: 'building',     keywords: ['remodelacion', 'remodelación', 'construccion desde cero', 'construcción desde cero', 'obra civil', 'construccion integral', 'construcción integral'] }
+  ];
+
+  function stripAccents(str) {
+    return (str || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+
+  function matchGroup(group) {
+    return servicesList.filter(s => {
+      const haystack = stripAccents(`${s.name || ''} ${s.description || ''} ${s.category || ''}`);
+      return group.keywords.some(kw => haystack.includes(stripAccents(kw)));
+    });
+  }
+
+  function renderGroupPanel(group) {
+    const matches = matchGroup(group);
+    if (matches.length === 0) {
+      return `
+        <div class="accordion-empty">
+          <p><i class="fas fa-info-circle"></i> Aún no hay un servicio publicado exactamente para "${group.label}", pero puedes solicitar una cotización y un técnico te contactará.</p>
+          <button class="btn btn-outline btn-sm accordion-request-btn" data-label="${group.label}"><i class="fas fa-paper-plane"></i> Solicitar cotización</button>
+        </div>`;
+    }
+    return `
+      <div class="accordion-services">
+        ${matches.map(s => `
+          <div class="accordion-service-row" data-id="${s.id}">
+            <div class="accordion-service-info">
+              <strong>${s.name || 'Servicio'}</strong>
+              <span>${(s.description || '').slice(0, 110)}${(s.description || '').length > 110 ? '…' : ''}</span>
+            </div>
+            <div class="accordion-service-right">
+              <span class="service-price">$${(s.base_price || 0).toLocaleString('es-CO')} COP</span>
+              <button class="btn btn-primary btn-sm service-book-btn" data-id="${s.id}"><i class="fas fa-calendar-check"></i> Solicitar</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  function renderCatalogAccordion() {
+    return `
+      <div class="catalog-accordion animate-on-scroll" id="catalogAccordion">
+        ${catalogGroups.map(g => `
+          <div class="accordion-item" data-group="${g.key}">
+            <button class="accordion-header" type="button" aria-expanded="false">
+              <span class="accordion-header-left"><i class="fas fa-${g.icon}"></i> ${g.label}</span>
+              <i class="fas fa-chevron-down accordion-chevron"></i>
+            </button>
+            <div class="accordion-panel">
+              <div class="accordion-panel-inner"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
   // ── Render page ────────────────────────────────────────────
 
   function render() {
@@ -34,6 +106,13 @@ const services = (() => {
             <h2 class="section-title">Soluciones Profesionales para tu Hogar</h2>
             <p class="section-subtitle">Contamos con técnicos certificados para cada necesidad. Todos los servicios incluyen garantía.</p>
           </div>
+
+          <!-- Catálogo desplegable por tipo de servicio -->
+          <div class="catalog-intro animate-on-scroll">
+            <h3><i class="fas fa-list-check"></i> Escoge el servicio que necesitas</h3>
+            <p>Despliega una categoría para ver el servicio exacto y solicitarlo.</p>
+          </div>
+          ${renderCatalogAccordion()}
 
           <!-- Filter Tabs -->
           <div class="filter-tabs animate-on-scroll">
@@ -149,7 +228,33 @@ const services = (() => {
       });
     });
 
-    // Service booking buttons (delegated)
+    // Catalog accordion (pestaña desplegable por tipo de servicio)
+    document.querySelectorAll('.accordion-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const item = header.closest('.accordion-item');
+        const panel = item.querySelector('.accordion-panel');
+        const inner = item.querySelector('.accordion-panel-inner');
+        const key = item.dataset.group;
+        const isOpen = item.classList.contains('open');
+
+        if (!isOpen) {
+          if (!inner.dataset.rendered) {
+            const group = catalogGroups.find(g => g.key === key);
+            inner.innerHTML = renderGroupPanel(group);
+            inner.dataset.rendered = '1';
+          }
+          item.classList.add('open');
+          header.setAttribute('aria-expanded', 'true');
+          panel.style.maxHeight = `${inner.scrollHeight}px`;
+        } else {
+          item.classList.remove('open');
+          header.setAttribute('aria-expanded', 'false');
+          panel.style.maxHeight = '0px';
+        }
+      });
+    });
+
+    // Service booking buttons (delegated) + accordion "solicitar cotización"
     document.addEventListener('click', (e) => {
       const bookBtn = e.target.closest('.service-book-btn');
       if (bookBtn) {
@@ -160,6 +265,18 @@ const services = (() => {
         }
         const serviceId = bookBtn.dataset.id;
         location.hash = `#booking?service=${serviceId}`;
+        return;
+      }
+
+      const reqBtn = e.target.closest('.accordion-request-btn');
+      if (reqBtn) {
+        if (!auth.isLoggedIn()) {
+          window.toast('Inicia sesión para solicitar un servicio', 'warning');
+          location.hash = '#login';
+          return;
+        }
+        const label = reqBtn.dataset.label || '';
+        location.hash = `#booking?label=${encodeURIComponent(label)}`;
       }
     });
 

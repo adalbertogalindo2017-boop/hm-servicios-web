@@ -492,6 +492,26 @@ async function seedData() {
       'Instalación y reparación de pisos en cerámica, porcelanato o madera. Incluye nivelación.',
       600000, '3-5 días', 'grid'
     );
+    const s9 = await insertService.run(
+      'Plomería General', 'obra_civil',
+      'Reparación de tuberías y fugas, destape de desagües, instalación de griferías, sanitarios y lavaplatos.',
+      140000, '2-4 horas', 'wrench'
+    );
+    const s10 = await insertService.run(
+      'Mantenimiento de Horno', 'gasodomesticos',
+      'Limpieza, calibración y revisión de seguridad de hornos a gas. Incluye cambio de empaques y ajuste de quemadores.',
+      95000, '1-2 horas', 'fire'
+    );
+    const s11 = await insertService.run(
+      'Mantenimiento de Secadora', 'gasodomesticos',
+      'Revisión y mantenimiento de secadoras a gas: limpieza de ductos, quemador y sistema de encendido.',
+      90000, '1-2 horas', 'wind'
+    );
+    const s12 = await insertService.run(
+      'Construcción y Remodelación Integral', 'obra_civil',
+      'Obra civil desde cero hasta la entrega, o remodelación completa de espacios: diseño, demolición, acabados y equipamiento. Cotización según proyecto.',
+      5000000, 'Según proyecto', 'hard-hat'
+    );
 
     // ─── 5. Sample service requests ───
     // Completed request with payment and review
