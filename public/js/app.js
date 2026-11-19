@@ -270,7 +270,7 @@
     appContainer.classList.add('page-exit');
     await new Promise(r => setTimeout(r, 200));
 
-    let html = '';
+    let html;
     let afterRender = null;
 
     switch (path) {

@@ -60,9 +60,13 @@ All under `/api/`: `/auth`, `/services`, `/technicians` (includes `/nearby`), `/
 | Technician | maria.rodriguez@email.com | Tecnico123! |
 | Client | ana.morales@email.com | Cliente123! |
 
+## Linting y formato
+- `npm run lint` (ESLint 9, flat config en `eslint.config.js`) y `npm run format` (Prettier, check-only; `npm run format:fix` para reescribir). `npm run lint` corre con 0 errores actualmente (solo warnings de `error` no usado en catch blocks, bajo riesgo).
+- Prettier aún no se ha aplicado al código existente (`npm run format` marca ~28 archivos) — se dejó así a propósito para no generar un diff masivo de una sola vez; correr `npm run format:fix` cuando convenga revisar ese diff aparte.
+- `public/js/**/*.js` declara `auth`/`api`/`services`/`technicians`/`payments`/`dashboard` como globals de solo lectura (patrón sin bundler, cada archivo expone un global vía `<script>`); el archivo que define cada uno tiene `no-redeclare` apagado solo para sí mismo, porque su propio `const X = (() => {...})()` se ve como "redeclaración" de ese global.
+
 ## Quirks
 - **PAGOS SIMULADOS**: `payments.controller.js` no está conectado a ninguna pasarela de pago real (Wompi/PayU/Mercado Pago/Stripe, etc.). Solo registra el pago como `completed` en la base de datos y reparte la comisión — no mueve dinero real. Hay que integrar una pasarela real antes de cobrar a clientes de verdad.
-- **No linter/formatter config** files exist on disk (only described in docs/04-programacion.md as intended, not enforced) — adding one is on the maintenance backlog.
 - `.gitignore` exists and covers `node_modules/`, `data/`, `.env`, `.vercel` — no issue here.
 - `HM-Sistema/` is a separate standalone static dashboard prototype (HTML/CSS/JS) — **not wired into the Express app**. See `HM-Sistema/README.md` for details. The real admin panel is `public/js/dashboard.js` (rendered inside the main SPA).
 - `scripts/copy-assets.js` used to copy `landing-page-mockup.png` from a hardcoded Windows absolute path that only existed on the original dev's machine (always failed elsewhere). The asset is already committed in `public/img/` and `docs/assets/`, so the script now just verifies both are present instead of trying to copy from anywhere.

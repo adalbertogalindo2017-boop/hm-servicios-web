@@ -88,7 +88,7 @@ async function findNearbyTechnicians(db, lat, lng, radiusKm = 10, category = nul
     .map((tech) => {
       const distance = haversineDistance(lat, lng, tech.latitude, tech.longitude);
       // Parse specialties JSON
-      let specialties = [];
+      let specialties;
       try {
         specialties = JSON.parse(tech.specialties || '[]');
       } catch {
