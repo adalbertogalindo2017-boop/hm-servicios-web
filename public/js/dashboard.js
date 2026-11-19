@@ -538,6 +538,10 @@ const dashboard = (() => {
               <i class="fas ${u.is_active ? 'fa-ban' : 'fa-check'}"></i>
               ${u.is_active ? 'Desactivar' : 'Activar'}
             </button>
+            <button class="btn btn-ghost btn-sm reset-password-btn" data-id="${u.id}" data-name="${u.name}">
+              <i class="fas fa-key"></i>
+              Restablecer contraseña
+            </button>
           </td>
         </tr>
       `).join('') : '<tr><td colspan="6" class="empty-state">Sin usuarios</td></tr>';
@@ -807,6 +811,24 @@ const dashboard = (() => {
           loadAdminUsers();
           loadAdminTechnicians();
         } catch (err) { window.toast(err.message || 'Error', 'error'); }
+      }
+
+      // Reset a user's password (admin) — las contraseñas se guardan con
+      // hash de un solo sentido, así que no hay forma de "recuperar" la
+      // anterior: la única opción si alguien la olvida es asignarle una
+      // nueva aquí.
+      const resetPasswordBtn = e.target.closest('.reset-password-btn');
+      if (resetPasswordBtn) {
+        const newPassword = prompt(`Nueva contraseña para ${resetPasswordBtn.dataset.name} (mínimo 6 caracteres):`);
+        if (newPassword === null) return; // cancelado
+        if (newPassword.length < 6) {
+          window.toast('La contraseña debe tener al menos 6 caracteres', 'warning');
+          return;
+        }
+        try {
+          await api.patch(`/admin/users/${resetPasswordBtn.dataset.id}/password`, { password: newPassword });
+          window.toast('Contraseña actualizada correctamente', 'success');
+        } catch (err) { window.toast(err.message || 'Error al actualizar la contraseña', 'error'); }
       }
 
       // Process a technician payout (admin)

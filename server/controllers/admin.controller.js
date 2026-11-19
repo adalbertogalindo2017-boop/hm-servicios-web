@@ -178,3 +178,30 @@ exports.updateUserRole = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
+
+// Las contraseñas se guardan como hash (bcrypt), de un solo sentido: no
+// existe forma de recuperar/ver la contraseña original de nadie, ni para
+// un administrador. Si alguien la olvida, la única opción es que un
+// administrador le asigne una contraseña nueva aquí.
+exports.resetUserPassword = async (req, res) => {
+    try {
+        const targetId = Number(req.params.id);
+        const { password } = req.body;
+
+        if (!password || typeof password !== 'string' || password.length < 6) {
+            return res.status(400).json({ success: false, message: 'La nueva contraseña debe tener al menos 6 caracteres' });
+        }
+
+        const target = await db.prepare('SELECT id FROM users WHERE id = ?').get(targetId);
+        if (!target) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        const password_hash = bcrypt.hashSync(password, 10);
+        await db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(password_hash, targetId);
+
+        res.json({ success: true, message: 'Contraseña actualizada' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};

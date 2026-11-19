@@ -9,6 +9,7 @@ router.get('/dashboard', adminController.getDashboard);
 router.get('/users', adminController.getAllUsers);
 router.post('/users', adminController.createUser);
 router.patch('/users/:id/role', adminController.updateUserRole);
+router.patch('/users/:id/password', adminController.resetUserPassword);
 router.post('/users/:id/toggle', adminController.toggleUserStatus);
 router.get('/requests', adminController.getAllRequests);
 router.get('/payouts', adminController.getPayouts);
