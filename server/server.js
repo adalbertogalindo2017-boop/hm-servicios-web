@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 // atender cualquier request — tanto en un server local de toda la vida
 // como en una función serverless de Vercel (donde esta misma promesa ya
 // resuelta se reutiliza en invocaciones posteriores del mismo contenedor "tibio").
-const dbReadyPromise = initializeDatabase();
+let dbReadyPromise = initializeDatabase();
 dbReadyPromise.catch((err) => {
     console.error('❌ Error inicializando la base de datos:', err);
 });
@@ -24,6 +24,17 @@ app.use((req, res, next) => {
     dbReadyPromise
         .then(() => next())
         .catch((err) => {
+            // Si la inicialización falló (p. ej. un corte de red transitorio
+            // al conectar con Turso durante un cold start), no dejamos esta
+            // misma promesa ya rechazada "envenenando" todas las peticiones
+            // futuras que lleguen a este mismo contenedor tibio: se prepara
+            // un nuevo intento para la siguiente petición. initializeDatabase
+            // ya reintenta varias veces internamente ante fallos de red
+            // transitorios, así que normalmente ni siquiera hace falta
+            // llegar aquí — pero si llega, la próxima persona que lo intente
+            // ya no hereda este mismo fallo.
+            dbReadyPromise = initializeDatabase();
+            dbReadyPromise.catch((e) => console.error('❌ Error inicializando la base de datos:', e));
             res.status(503).json({ success: false, message: 'Base de datos no disponible, intenta de nuevo en un momento.' });
         });
 });

@@ -561,14 +561,51 @@ async function seedData() {
 // Inicialización
 // ──────────────────────────────────────────────
 
+// Errores de red transitorios: una invocación serverless recién arrancada
+// (cold start) a veces tarda en establecer la conexión TCP/TLS con Turso y
+// el intento falla una vez con "fetch failed"/ETIMEDOUT/ECONNRESET aunque
+// la base de datos esté perfectamente disponible — el siguiente intento,
+// unos milisegundos después, normalmente funciona. En vez de que esto se
+// traduzca en un 503 para la persona que intentó iniciar sesión justo en
+// ese instante, se reintenta unas pocas veces aquí, dentro de la misma
+// invocación, antes de rendirse.
+const TRANSIENT_NETWORK_ERROR_PATTERNS = ['fetch failed', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EAI_AGAIN'];
+
+function isTransientNetworkError(err) {
+  const text = `${err && err.message} ${err && err.cause && err.cause.message} ${err && err.code}`;
+  return TRANSIENT_NETWORK_ERROR_PATTERNS.some(p => text.includes(p));
+}
+
+async function withRetry(fn, { retries = 3, baseDelayMs = 300 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (attempt < retries && isTransientNetworkError(err)) {
+        const delay = baseDelayMs * Math.pow(2, attempt);
+        console.warn(`  ⚠️  Fallo de red transitorio conectando a la base de datos (intento ${attempt + 1}/${retries + 1}): ${err.message}. Reintentando en ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
 /**
  * Ejecuta la creación de tablas y la carga de datos semilla.
+ * Reintenta automáticamente ante fallos de red transitorios al conectar
+ * (ver withRetry arriba) para no devolver un 503 innecesario por un
+ * cold start lento hacia Turso.
  */
 async function initializeDatabase() {
   console.log('📦 Inicializando base de datos...');
   console.log(`   Backend: ${TURSO_URL ? `Turso (${TURSO_URL})` : clientConfig.url}`);
-  await createTables();
-  await seedData();
+  await withRetry(() => createTables());
+  await withRetry(() => seedData());
   console.log('📦 Base de datos lista.\n');
 }
 
