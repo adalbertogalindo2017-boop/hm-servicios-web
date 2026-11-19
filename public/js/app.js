@@ -354,6 +354,11 @@
   //  SCROLL ANIMATIONS & COUNTER
   // ═══════════════════════════════════════════════════════════
 
+  // Observer de mutaciones activo entre navegaciones, para poder
+  // desconectar el anterior y no ir acumulando uno nuevo cada vez que el
+  // router cambia de página (ver más abajo).
+  let scrollAnimMutationObserver = null;
+
   function initScrollAnimations() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -371,6 +376,34 @@
     }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
     document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+    // initScrollAnimations() se llama una sola vez justo después de
+    // renderizar la página (afterRender()), pero varias páginas (el
+    // catálogo de servicios, la lista de técnicos) cargan su contenido de
+    // forma asíncrona (esperan la respuesta de la API) e inyectan sus
+    // tarjetas ".animate-on-scroll" DESPUÉS de ese punto. Esas tarjetas
+    // nunca llegaban a pasar por el querySelectorAll de arriba, así que el
+    // IntersectionObserver nunca las observaba y se quedaban en
+    // "opacity:0" (su estado inicial en CSS) para siempre — la página se
+    // veía completamente en blanco aunque el contenido sí se hubiera
+    // cargado correctamente. Este MutationObserver detecta cualquier
+    // ".animate-on-scroll" agregado después, sin importar qué módulo lo
+    // inyecte ni cuándo, y lo entrega al mismo IntersectionObserver.
+    if (scrollAnimMutationObserver) scrollAnimMutationObserver.disconnect();
+    scrollAnimMutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType !== 1) return;
+          if (node.classList && node.classList.contains('animate-on-scroll')) {
+            observer.observe(node);
+          }
+          if (node.querySelectorAll) {
+            node.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+          }
+        });
+      });
+    });
+    scrollAnimMutationObserver.observe(appContainer, { childList: true, subtree: true });
   }
 
   function animateCounters(parent) {
