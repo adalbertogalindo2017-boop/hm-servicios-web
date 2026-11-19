@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hm-servicios-web.vercel.app/sitemap.xml
