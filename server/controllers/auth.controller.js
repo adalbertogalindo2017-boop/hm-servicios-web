@@ -95,6 +95,51 @@ exports.login = async (req, res) => {
     }
 };
 
+// Compara teléfonos ignorando formato (espacios, guiones, paréntesis,
+// indicativo de país) para que una diferencia de escritura entre el
+// registro original y lo que la persona recuerda ahora no bloquee la
+// recuperación. Solo compara los últimos dígitos (mínimo 7) para tolerar
+// el "+57" u otro indicativo que alguno de los dos lados pueda no tener.
+function phonesMatch(a, b) {
+    const digitsA = (a || '').replace(/\D/g, '');
+    const digitsB = (b || '').replace(/\D/g, '');
+    if (digitsA.length < 7 || digitsB.length < 7) return false;
+    const shortLen = Math.min(digitsA.length, digitsB.length, 10);
+    return digitsA.slice(-shortLen) === digitsB.slice(-shortLen);
+}
+
+// Recuperación de contraseña sin servicio de correo configurado en el
+// proyecto: la identidad se verifica confirmando el email Y el teléfono que
+// quedaron registrados (en vez de un enlace enviado por correo), y en la
+// misma petición se fija la nueva contraseña. Si en el futuro se agrega un
+// proveedor de email (Resend/SendGrid/SMTP) con sus propias credenciales,
+// este endpoint se puede reemplazar por el flujo clásico de token por
+// correo sin tener que tocar el resto de la aplicación.
+exports.forgotPassword = async (req, res) => {
+    try {
+        const email = normalizeEmail(req.body.email);
+        const { phone, newPassword } = req.body;
+
+        const user = await db.prepare('SELECT id, phone FROM users WHERE email = ?').get(email);
+
+        // Mensaje genérico tanto si el correo no existe como si el teléfono
+        // no coincide, para no revelar con cuál cuenta de correo sí existe
+        // una cuenta (evita que alguien use este endpoint para confirmar
+        // qué correos están registrados).
+        if (!user || !phonesMatch(user.phone, phone)) {
+            return res.status(400).json({ success: false, message: 'No encontramos una cuenta con ese correo y teléfono.' });
+        }
+
+        const password_hash = bcrypt.hashSync(newPassword, 10);
+        await db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(password_hash, user.id);
+
+        res.json({ success: true, message: 'Contraseña actualizada. Ya puedes iniciar sesión.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
 exports.refreshToken = (req, res) => {
     // In a real app, verify refresh token properly
     res.status(200).json({ success: true, message: 'Token refreshed' });

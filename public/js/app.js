@@ -288,6 +288,10 @@
         afterRender = () => auth.initRegisterEvents();
         break;
 
+      case 'forgot-password':
+        html = auth.renderForgotPassword();
+        break;
+
       case 'services':
         html = services.render();
         afterRender = () => { services.loadServices(); services.initEvents(); };
@@ -431,6 +435,7 @@
   document.addEventListener('submit', (e) => {
     if (e.target.id === 'loginForm') auth.handleLogin(e);
     if (e.target.id === 'registerForm') auth.handleRegister(e);
+    if (e.target.id === 'forgotPasswordForm') auth.handleForgotPassword(e);
   });
 
   // Logout
