@@ -64,7 +64,10 @@ const registerRules = [
   body('phone')
     .optional()
     .trim()
-    .matches(/^\+?[\d\s-]{7,15}$/).withMessage('Número de teléfono no válido.'),
+    // Acepta paréntesis y puntos además de espacios y guiones: formatos
+    // como "(304) 123 4567" o "300.123.4567" son comunes al escribir desde
+    // el celular y antes se rechazaban como "no válido" sin explicación.
+    .matches(/^\+?[\d\s().-]{7,20}$/).withMessage('Número de teléfono no válido.'),
 
   body('role')
     .optional()
@@ -124,8 +127,13 @@ const serviceRules = [
  * Validación para creación de solicitud de servicio.
  */
 const serviceRequestRules = [
+  // El técnico es opcional al crear la solicitud: el flujo normal desde la
+  // página de servicios (sin elegir técnico de antemano) crea la solicitud
+  // sin asignar y cualquier técnico disponible puede aceptarla después.
+  // Exigirlo aquí (como antes) rechazaba con 400 toda solicitud creada por
+  // ese flujo, aunque la columna en la base de datos sí permite NULL.
   body('technician_id')
-    .notEmpty().withMessage('El ID del técnico es obligatorio.')
+    .optional({ nullable: true, checkFalsy: true })
     .isInt({ min: 1 }).withMessage('ID de técnico no válido.'),
 
   body('service_id')

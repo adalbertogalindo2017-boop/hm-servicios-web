@@ -26,6 +26,20 @@ const auth = (() => {
     return u ? u.role : null;
   }
 
+  // Cuando express-validator rechaza el formulario, el servidor devuelve
+  // { message: 'Error de validación.', errors: [{field, message}, ...] }
+  // con el motivo real en "errors". Mostrar solo err.message dejaba al
+  // usuario viendo "Error de validación." sin saber qué corregir (p. ej.
+  // que la contraseña necesita un número o un símbolo), así que intenta
+  // registrarse un par de veces y se rinde. Esto junta los mensajes
+  // específicos cuando existen.
+  function describeApiError(err, fallback) {
+    if (err && err.data && Array.isArray(err.data.errors) && err.data.errors.length) {
+      return err.data.errors.map(e => e.message).join(' ');
+    }
+    return (err && err.message) || fallback;
+  }
+
   // ── UI updates ─────────────────────────────────────────────
 
   function updateNav() {
@@ -116,7 +130,7 @@ const auth = (() => {
       else if (role === 'technician') location.hash = '#tech-dashboard';
       else location.hash = '#client-dashboard';
     } catch (err) {
-      window.toast(err.message || 'Error al iniciar sesión', 'error');
+      window.toast(describeApiError(err, 'Error al iniciar sesión'), 'error');
     } finally {
       toggleBtnLoading(btn, false);
     }
@@ -245,6 +259,14 @@ const auth = (() => {
       window.toast('Por favor completa todos los campos obligatorios', 'warning');
       return;
     }
+    // NOTA: server/middleware/validation.js define reglas de contraseña más
+    // estrictas (mín. 8, mayúscula, minúscula, número, símbolo) pero NO
+    // están conectadas en server/routes/auth.routes.js — la ruta real de
+    // registro no les pasa por ningún middleware de validación. El límite
+    // real del servidor es "ninguno" (bcrypt acepta cualquier string), así
+    // que aquí se mantiene solo el mínimo de 6 caracteres que ya existía
+    // para evitar contraseñas triviales, sin inventar una exigencia que el
+    // backend no aplica.
     if (payload.password.length < 6) {
       window.toast('La contraseña debe tener al menos 6 caracteres', 'warning');
       return;
@@ -264,7 +286,7 @@ const auth = (() => {
       window.toast('¡Cuenta creada exitosamente!', 'success');
       location.hash = role === 'technician' ? '#tech-dashboard' : '#client-dashboard';
     } catch (err) {
-      window.toast(err.message || 'Error al crear la cuenta', 'error');
+      window.toast(describeApiError(err, 'Error al crear la cuenta'), 'error');
     } finally {
       toggleBtnLoading(btn, false);
     }
@@ -305,6 +327,7 @@ const auth = (() => {
     isLoggedIn,
     getUser,
     getUserRole,
-    toggleBtnLoading
+    toggleBtnLoading,
+    describeApiError
   };
 })();

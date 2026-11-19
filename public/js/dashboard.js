@@ -58,11 +58,18 @@ const dashboard = (() => {
 
   async function loadClientDashboard() {
     try {
-      const data = await api.get('/service-requests/my');
+      // El backend expone este recurso en /api/requests (requests.routes.js),
+      // no en /service-requests — esa ruta no existe y siempre devolvía 404,
+      // así que un cliente nunca veía sus solicitudes (y por el mismo motivo
+      // tampoco podía crear ninguna; ver initBooking más abajo).
+      const data = await api.get('/requests');
       const requests = Array.isArray(data) ? data : (data.requests || data.solicitudes || []);
 
-      const active = requests.filter(r => ['pendiente','aceptada','en_progreso'].includes(r.estado));
-      const completed = requests.filter(r => r.estado === 'completada');
+      // El backend siempre usa status en inglés ('pending', 'accepted',
+      // 'in_progress', 'completed', 'cancelled' — ver el CHECK de
+      // service_requests en database.js), nunca "estado" en español.
+      const active = requests.filter(r => ['pending','accepted','in_progress'].includes(r.status));
+      const completed = requests.filter(r => r.status === 'completed');
 
       document.getElementById('clientActiveCount').textContent = active.length;
       document.getElementById('clientCompletedCount').textContent = completed.length;
@@ -91,17 +98,17 @@ const dashboard = (() => {
     container.innerHTML = requests.map(r => `
       <div class="request-item">
         <div class="request-status">
-          <span class="status-badge status-${r.estado}">${statusLabel(r.estado)}</span>
+          <span class="status-badge status-${r.status}">${statusLabel(r.status)}</span>
         </div>
         <div class="request-details">
-          <strong>${r.servicio?.nombre || r.servicioNombre || 'Servicio'}</strong>
-          <span class="request-date"><i class="fas fa-calendar"></i> ${new Date(r.createdAt || r.fecha).toLocaleDateString('es-CO')}</span>
-          ${r.tecnico?.nombre ? `<span class="request-tech"><i class="fas fa-user-hard-hat"></i> ${r.tecnico.nombre}</span>` : ''}
+          <strong>${r.service_name || 'Servicio'}</strong>
+          <span class="request-date"><i class="fas fa-calendar"></i> ${new Date(r.created_at).toLocaleDateString('es-CO')}</span>
+          ${r.technician_name ? `<span class="request-tech"><i class="fas fa-user-hard-hat"></i> ${r.technician_name}</span>` : ''}
         </div>
         <div class="request-actions">
-          ${showCancel && r.estado === 'pendiente' ? `<button class="btn btn-danger btn-sm cancel-request-btn" data-id="${r._id || r.id}"><i class="fas fa-times"></i> Cancelar</button>` : ''}
-          ${r.estado === 'completada' && !r.calificada ? `<button class="btn btn-accent btn-sm rate-btn" data-id="${r._id || r.id}"><i class="fas fa-star"></i> Calificar</button>` : ''}
-          ${r.estado === 'completada' && !r.pagada ? `<button class="btn btn-primary btn-sm pay-request-btn" data-id="${r._id || r.id}" data-amount="${r.precio || r.monto || 0}"><i class="fas fa-credit-card"></i> Pagar</button>` : ''}
+          ${showCancel && r.status === 'pending' ? `<button class="btn btn-danger btn-sm cancel-request-btn" data-id="${r.id}"><i class="fas fa-times"></i> Cancelar</button>` : ''}
+          ${r.status === 'completed' ? `<button class="btn btn-accent btn-sm rate-btn" data-id="${r.id}"><i class="fas fa-star"></i> Calificar</button>` : ''}
+          ${r.status === 'completed' ? `<button class="btn btn-primary btn-sm pay-request-btn" data-id="${r.id}" data-amount="${r.agreed_price || 0}"><i class="fas fa-credit-card"></i> Pagar</button>` : ''}
         </div>
       </div>
     `).join('');
@@ -181,18 +188,22 @@ const dashboard = (() => {
 
   async function loadTechDashboard() {
     try {
-      const data = await api.get('/service-requests/technician');
+      // Mismo endpoint que el cliente (/api/requests): el backend filtra por
+      // rol según el JWT, no hay una ruta aparte "/technician". El técnico
+      // ve tanto sus solicitudes ya asignadas como las pendientes sin
+      // asignar todavía (ver getMyRequests en requests.controller.js).
+      const data = await api.get('/requests');
       const requests = Array.isArray(data) ? data : (data.requests || data.solicitudes || []);
 
-      const pending = requests.filter(r => r.estado === 'pendiente');
-      const active = requests.filter(r => ['aceptada', 'en_progreso'].includes(r.estado));
-      const completed = requests.filter(r => r.estado === 'completada');
+      const pending = requests.filter(r => r.status === 'pending');
+      const active = requests.filter(r => ['accepted', 'in_progress'].includes(r.status));
+      const completed = requests.filter(r => r.status === 'completed');
 
-      const totalEarnings = completed.reduce((s, r) => s + (r.precio || r.monto || 0), 0);
+      const totalEarnings = completed.reduce((s, r) => s + (r.agreed_price || 0), 0);
       const now = new Date();
       const monthEarnings = completed
-        .filter(r => { const d = new Date(r.completadaEn || r.createdAt); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); })
-        .reduce((s, r) => s + (r.precio || r.monto || 0), 0);
+        .filter(r => { const d = new Date(r.completed_date || r.created_at); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); })
+        .reduce((s, r) => s + (r.agreed_price || 0), 0);
 
       document.getElementById('techMonthEarnings').textContent = `$${monthEarnings.toLocaleString('es-CO')}`;
       document.getElementById('techTotalEarnings').textContent = `$${totalEarnings.toLocaleString('es-CO')}`;
@@ -233,20 +244,20 @@ const dashboard = (() => {
     container.innerHTML = requests.map(r => `
       <div class="request-item">
         <div class="request-status">
-          <span class="status-badge status-${r.estado}">${statusLabel(r.estado)}</span>
+          <span class="status-badge status-${r.status}">${statusLabel(r.status)}</span>
         </div>
         <div class="request-details">
-          <strong>${r.servicio?.nombre || r.servicioNombre || 'Servicio'}</strong>
-          <span class="request-date"><i class="fas fa-calendar"></i> ${new Date(r.createdAt || r.fecha).toLocaleDateString('es-CO')}</span>
-          ${r.cliente?.nombre ? `<span class="request-client"><i class="fas fa-user"></i> ${r.cliente.nombre}</span>` : ''}
+          <strong>${r.service_name || 'Servicio'}</strong>
+          <span class="request-date"><i class="fas fa-calendar"></i> ${new Date(r.created_at).toLocaleDateString('es-CO')}</span>
+          ${r.client_name ? `<span class="request-client"><i class="fas fa-user"></i> ${r.client_name}</span>` : ''}
         </div>
         <div class="request-actions">
           ${type === 'pending' ? `
-            <button class="btn btn-primary btn-sm accept-btn" data-id="${r._id || r.id}"><i class="fas fa-check"></i> Aceptar</button>
-            <button class="btn btn-danger btn-sm reject-btn" data-id="${r._id || r.id}"><i class="fas fa-times"></i> Rechazar</button>
+            <button class="btn btn-primary btn-sm accept-btn" data-id="${r.id}"><i class="fas fa-check"></i> Aceptar</button>
+            <button class="btn btn-danger btn-sm reject-btn" data-id="${r.id}"><i class="fas fa-times"></i> Rechazar</button>
           ` : ''}
           ${type === 'active' ? `
-            <button class="btn btn-primary btn-sm complete-btn" data-id="${r._id || r.id}"><i class="fas fa-check-double"></i> Completar</button>
+            <button class="btn btn-primary btn-sm complete-btn" data-id="${r.id}"><i class="fas fa-check-double"></i> Completar</button>
           ` : ''}
         </div>
       </div>
@@ -706,12 +717,16 @@ const dashboard = (() => {
 
     // Populate services
     try {
+      // Mismo bug que en services.js: la API real devuelve name/base_price
+      // en inglés, no nombre/precio. Antes cada opción del selector de
+      // servicios se mostraba como "undefined — $0 COP", lo que hacía
+      // imposible elegir un servicio real al solicitar.
       const data = await api.get('/services');
       const svcs = Array.isArray(data) ? data : (data.services || data.servicios || []);
       svcs.forEach(s => {
         const opt = document.createElement('option');
-        opt.value = s._id || s.id;
-        opt.textContent = `${s.nombre} — $${(s.precio||0).toLocaleString('es-CO')} COP`;
+        opt.value = s.id;
+        opt.textContent = `${s.name || 'Servicio'} — $${(s.base_price||0).toLocaleString('es-CO')} COP`;
         select.appendChild(opt);
       });
     } catch { /* fallback already in the select */ }
@@ -725,27 +740,39 @@ const dashboard = (() => {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
-        const payload = {
-          servicio: document.getElementById('bookService').value,
-          fecha: document.getElementById('bookDate').value,
-          franja: document.getElementById('bookTime').value,
-          direccion: document.getElementById('bookAddress').value,
-          notas: document.getElementById('bookNotes').value
-        };
-        if (params.technician) payload.tecnico = params.technician;
+        const serviceId = document.getElementById('bookService').value;
+        const scheduledDate = document.getElementById('bookDate').value;
+        const timeSlot = document.getElementById('bookTime').value;
+        const address = document.getElementById('bookAddress').value;
+        const notes = document.getElementById('bookNotes').value;
 
-        if (!payload.servicio || !payload.fecha || !payload.franja || !payload.direccion) {
+        if (!serviceId || !scheduledDate || !timeSlot || !address) {
           window.toast('Por favor completa todos los campos obligatorios', 'warning');
           return;
         }
 
+        // El backend (requests.controller.js / server/config/database.js)
+        // espera service_id, scheduled_date, client_address y description en
+        // inglés — nunca "servicio"/"fecha"/"direccion"/"notas". Enviaba esos
+        // nombres antes y, además, a una ruta /service-requests que no
+        // existe (el endpoint real es /requests), así que el envío fallaba
+        // siempre, con o sin esos nombres. No hay columna para la franja
+        // horaria, así que se agrega al texto de la descripción.
+        const payload = {
+          service_id: Number(serviceId),
+          scheduled_date: scheduledDate,
+          client_address: address,
+          description: `Horario preferido: ${timeSlot}${notes ? ' — ' + notes : ''}`
+        };
+        if (params.technician) payload.technician_id = Number(params.technician);
+
         auth.toggleBtnLoading(btn, true);
         try {
-          await api.post('/service-requests', payload);
+          await api.post('/requests', payload);
           window.toast('¡Solicitud enviada exitosamente!', 'success');
           location.hash = '#client-dashboard';
         } catch (err) {
-          window.toast(err.message || 'Error al enviar la solicitud', 'error');
+          window.toast(auth.describeApiError(err, 'Error al enviar la solicitud'), 'error');
         } finally {
           auth.toggleBtnLoading(btn, false);
         }
@@ -760,45 +787,54 @@ const dashboard = (() => {
 
   function initDashboardEvents() {
     document.addEventListener('click', async (e) => {
-      // Cancel request
+      // Cancel request — endpoint real: POST /requests/:id/cancel (sin
+      // cuerpo). PATCH /service-requests/:id con {estado:'cancelada'} no
+      // existía como ruta y aunque existiera, el backend espera
+      // status='cancelled' en inglés, no estado/cancelada en español.
       const cancelBtn = e.target.closest('.cancel-request-btn');
       if (cancelBtn) {
         if (!confirm('¿Deseas cancelar esta solicitud?')) return;
         try {
-          await api.patch(`/service-requests/${cancelBtn.dataset.id}`, { estado: 'cancelada' });
+          await api.post(`/requests/${cancelBtn.dataset.id}/cancel`);
           window.toast('Solicitud cancelada', 'info');
           loadClientDashboard();
-        } catch (err) { window.toast(err.message || 'Error', 'error'); }
+        } catch (err) { window.toast(auth.describeApiError(err, 'Error'), 'error'); }
       }
 
-      // Accept request (tech)
+      // Accept request (tech) — PUT /requests/:id/status con
+      // {status:'accepted'}; el servidor asigna automáticamente el técnico
+      // que acepta si la solicitud todavía no tenía uno.
       const acceptBtn = e.target.closest('.accept-btn');
       if (acceptBtn) {
         try {
-          await api.patch(`/service-requests/${acceptBtn.dataset.id}`, { estado: 'aceptada' });
+          await api.put(`/requests/${acceptBtn.dataset.id}/status`, { status: 'accepted' });
           window.toast('Solicitud aceptada', 'success');
           loadTechDashboard();
-        } catch (err) { window.toast(err.message || 'Error', 'error'); }
+        } catch (err) { window.toast(auth.describeApiError(err, 'Error'), 'error'); }
       }
 
-      // Reject request (tech)
+      // Reject request (tech) — no existe un status "rejected" en la base
+      // de datos (el CHECK de service_requests solo permite pending /
+      // accepted / in_progress / completed / cancelled), así que "rechazar"
+      // devuelve la solicitud a 'pending' sin técnico asignado para que
+      // otro técnico disponible pueda tomarla.
       const rejectBtn = e.target.closest('.reject-btn');
       if (rejectBtn) {
         try {
-          await api.patch(`/service-requests/${rejectBtn.dataset.id}`, { estado: 'rechazada' });
+          await api.put(`/requests/${rejectBtn.dataset.id}/status`, { status: 'pending' });
           window.toast('Solicitud rechazada', 'info');
           loadTechDashboard();
-        } catch (err) { window.toast(err.message || 'Error', 'error'); }
+        } catch (err) { window.toast(auth.describeApiError(err, 'Error'), 'error'); }
       }
 
       // Complete (tech)
       const completeBtn = e.target.closest('.complete-btn');
       if (completeBtn) {
         try {
-          await api.patch(`/service-requests/${completeBtn.dataset.id}`, { estado: 'completada' });
+          await api.put(`/requests/${completeBtn.dataset.id}/status`, { status: 'completed' });
           window.toast('¡Servicio completado!', 'success');
           loadTechDashboard();
-        } catch (err) { window.toast(err.message || 'Error', 'error'); }
+        } catch (err) { window.toast(auth.describeApiError(err, 'Error'), 'error'); }
       }
 
       // Toggle user active (admin)
@@ -948,14 +984,17 @@ const dashboard = (() => {
       document.getElementById('submitRating').addEventListener('click', async () => {
         if (selected === 0) { window.toast('Selecciona una calificación', 'warning'); return; }
         try {
-          await api.post(`/service-requests/${requestId}/rate`, {
+          // El recurso real es /api/reviews (reviews.routes.js), con el id
+          // de la solicitud en el cuerpo, no /service-requests/:id/rate.
+          await api.post('/reviews', {
+            service_request_id: requestId,
             rating: selected,
             comment: document.getElementById('ratingComment').value
           });
           window.toast('¡Gracias por tu calificación!', 'success');
           window.closeModal();
           loadClientDashboard();
-        } catch (err) { window.toast(err.message || 'Error', 'error'); }
+        } catch (err) { window.toast(auth.describeApiError(err, 'Error'), 'error'); }
       });
     }, 100);
   }
@@ -966,23 +1005,18 @@ const dashboard = (() => {
   // ═══════════════════════════════════════════════════════════
 
   function statusLabel(status) {
+    // Status real de service_requests (CHECK constraint en database.js):
+    // siempre en inglés. Antes había también un juego de claves en español
+    // ('pendiente', 'aceptada', ...) que ningún dato real producía — el
+    // backend nunca devuelve "estado", solo "status" — así que se quitaron.
     const map = {
-      // Usados por los paneles de cliente/técnico (service_requests en español
-      // — no coinciden con el backend real; ver nota en la respuesta final).
-      pendiente: 'Pendiente',
-      aceptada: 'Aceptada',
-      en_progreso: 'En Progreso',
-      completada: 'Completada',
-      cancelada: 'Cancelada',
-      rechazada: 'Rechazada',
-      activo: 'Activo',
-      inactivo: 'Inactivo',
-      // Usados por el panel de administración (status real de service_requests).
       pending: 'Pendiente',
       accepted: 'Aceptada',
       in_progress: 'En Progreso',
       completed: 'Completada',
-      cancelled: 'Cancelada'
+      cancelled: 'Cancelada',
+      activo: 'Activo',
+      inactivo: 'Inactivo'
     };
     return map[status] || status;
   }

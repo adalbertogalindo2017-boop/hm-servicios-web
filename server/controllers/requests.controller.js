@@ -11,6 +11,7 @@ exports.create = async (req, res) => {
 
         res.status(201).json({ success: true, data: { id: result.lastInsertRowid } });
     } catch (error) {
+        console.error('[requests.create] Error creando solicitud:', error);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
@@ -28,7 +29,13 @@ exports.getMyRequests = async (req, res) => {
         if (req.user.role === 'client') {
             query += ' WHERE sr.client_id = ?';
         } else if (req.user.role === 'technician') {
-            query += ' WHERE sr.technician_id = ?';
+            // Incluye tanto las solicitudes ya asignadas a este técnico como
+            // las pendientes sin asignar (creadas desde el flujo "solicitar
+            // servicio" sin elegir técnico de antemano), para que cualquier
+            // técnico disponible pueda verlas y aceptarlas. Antes solo se
+            // mostraban las ya asignadas, así que una solicitud sin técnico
+            // nunca llegaba a aparecer en el panel de ningún técnico.
+            query += ' WHERE sr.technician_id = ? OR (sr.technician_id IS NULL AND sr.status = \'pending\')';
         } else {
             return res.status(403).json({ success: false, message: 'Forbidden' });
         }
@@ -36,6 +43,7 @@ exports.getMyRequests = async (req, res) => {
         const requests = await db.prepare(query).all(req.user.id);
         res.json({ success: true, data: requests });
     } catch (error) {
+        console.error('[requests.getMyRequests] Error:', error);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
@@ -69,11 +77,34 @@ exports.updateStatus = async (req, res) => {
             params.push(agreed_price);
         }
 
+        // Un técnico que acepta una solicitud todavía sin asignar (el caso
+        // normal cuando el cliente pidió el servicio sin elegir técnico de
+        // antemano) queda asignado en ese mismo paso.
+        if (status === 'accepted' && req.user.role === 'technician') {
+            updateQuery += ', technician_id = ?';
+            params.push(req.user.id);
+        }
+
+        // Un técnico que rechaza una solicitud la libera (vuelve a quedar
+        // sin asignar) para que otro técnico disponible pueda tomarla, en
+        // vez de dejarla "atascada" asignada a alguien que ya dijo que no.
+        if (status === 'pending' && req.user.role === 'technician') {
+            updateQuery += ', technician_id = NULL';
+        }
+
         if (status === 'completed') {
             updateQuery += ", completed_date = datetime('now')";
         }
 
-        updateQuery += ' WHERE id = ? AND (technician_id = ? OR client_id = ?)';
+        // Autoriza el cambio si la solicitud ya le pertenece (como cliente o
+        // como técnico asignado) o si está pendiente y sin técnico asignado
+        // todavía — ese es el caso de un técnico tomando una solicitud
+        // abierta por primera vez, que antes nunca pasaba esta condición
+        // (ni technician_id ni client_id coinciden con nadie) y siempre
+        // devolvía 404 aunque la solicitud fuera legítima.
+        updateQuery += ` WHERE id = ? AND (
+            technician_id = ? OR client_id = ? OR (technician_id IS NULL AND status = 'pending')
+        )`;
         params.push(req.params.id, req.user.id, req.user.id);
 
         const result = await db.prepare(updateQuery).run(...params);
@@ -81,6 +112,7 @@ exports.updateStatus = async (req, res) => {
 
         res.json({ success: true, message: 'Status updated' });
     } catch (error) {
+        console.error('[requests.updateStatus] Error:', error);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
@@ -95,6 +127,7 @@ exports.cancel = async (req, res) => {
         if (result.changes === 0) return res.status(400).json({ success: false, message: 'Cannot cancel request' });
         res.json({ success: true, message: 'Request cancelled' });
     } catch (error) {
+        console.error('[requests.cancel] Error:', error);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };

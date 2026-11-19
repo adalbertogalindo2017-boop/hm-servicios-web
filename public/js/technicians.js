@@ -4,13 +4,17 @@
 
 const technicians = (() => {
 
+  // Mismos nombres de campo que usa la API real (name, rating_avg,
+  // total_services, distance_km, is_available, coverage_radius_km,
+  // description, specialties) para que renderGrid no tenga que distinguir
+  // entre datos reales y datos de respaldo.
   const fallbackTechnicians = [
-    { _id:'t1', nombre:'Carlos Rodríguez', email:'carlos@hm.com', telefono:'3001234567', especialidades:['Estufas','Calentadores','Hornos'], rating:4.8, totalReviews:127, distancia:1.2, disponible:true, zonaCobertura:'Norte de Bogotá', descripcion:'Técnico certificado con 10 años de experiencia en gasodomésticos.' },
-    { _id:'t2', nombre:'María González', email:'maria@hm.com', telefono:'3109876543', especialidades:['Plomería','Enchapes','Drywall'], rating:4.9, totalReviews:98, distancia:2.5, disponible:true, zonaCobertura:'Chapinero, Usaquén', descripcion:'Especialista en obra civil y acabados de alta calidad.' },
-    { _id:'t3', nombre:'Andrés López', email:'andres@hm.com', telefono:'3201112233', especialidades:['Redes de Gas','Detección de Fugas'], rating:4.7, totalReviews:85, distancia:3.1, disponible:false, zonaCobertura:'Suba, Engativá', descripcion:'Ingeniero de gas con certificación clase A.' },
-    { _id:'t4', nombre:'Laura Martínez', email:'laura@hm.com', telefono:'3154445566', especialidades:['Pintura','Remodelación','Acabados'], rating:4.6, totalReviews:64, distancia:4.8, disponible:true, zonaCobertura:'Centro y Sur de Bogotá', descripcion:'Diseñadora de interiores y experta en remodelaciones.' },
-    { _id:'t5', nombre:'Pedro Sánchez', email:'pedro@hm.com', telefono:'3187778899', especialidades:['Calentadores','Estufas','Redes de Gas'], rating:4.5, totalReviews:112, distancia:5.3, disponible:true, zonaCobertura:'Kennedy, Fontibón', descripcion:'Más de 15 años de experiencia en instalación y mantenimiento de gasodomésticos.' },
-    { _id:'t6', nombre:'Ana Ramírez', email:'ana@hm.com', telefono:'3002223344', especialidades:['Plomería','Pintura','Enchapes'], rating:4.9, totalReviews:73, distancia:6.0, disponible:true, zonaCobertura:'Teusaquillo, Barrios Unidos', descripcion:'Profesional multidisciplinaria en servicios de obra civil.' }
+    { id:'t1', name:'Carlos Rodríguez', email:'carlos@hm.com', phone:'3001234567', specialties:['Estufas','Calentadores','Hornos'], rating_avg:4.8, total_services:127, distance_km:1.2, is_available:true, coverage_radius_km:10, description:'Técnico certificado con 10 años de experiencia en gasodomésticos.' },
+    { id:'t2', name:'María González', email:'maria@hm.com', phone:'3109876543', specialties:['Plomería','Enchapes','Drywall'], rating_avg:4.9, total_services:98, distance_km:2.5, is_available:true, coverage_radius_km:15, description:'Especialista en obra civil y acabados de alta calidad.' },
+    { id:'t3', name:'Andrés López', email:'andres@hm.com', phone:'3201112233', specialties:['Redes de Gas','Detección de Fugas'], rating_avg:4.7, total_services:85, distance_km:3.1, is_available:false, coverage_radius_km:12, description:'Ingeniero de gas con certificación clase A.' },
+    { id:'t4', name:'Laura Martínez', email:'laura@hm.com', phone:'3154445566', specialties:['Pintura','Remodelación','Acabados'], rating_avg:4.6, total_services:64, distance_km:4.8, is_available:true, coverage_radius_km:18, description:'Diseñadora de interiores y experta en remodelaciones.' },
+    { id:'t5', name:'Pedro Sánchez', email:'pedro@hm.com', phone:'3187778899', specialties:['Calentadores','Estufas','Redes de Gas'], rating_avg:4.5, total_services:112, distance_km:5.3, is_available:true, coverage_radius_km:20, description:'Más de 15 años de experiencia en instalación y mantenimiento de gasodomésticos.' },
+    { id:'t6', name:'Ana Ramírez', email:'ana@hm.com', phone:'3002223344', specialties:['Plomería','Pintura','Enchapes'], rating_avg:4.9, total_services:73, distance_km:6.0, is_available:true, coverage_radius_km:14, description:'Profesional multidisciplinaria en servicios de obra civil.' }
   ];
 
   let techList = [];
@@ -97,41 +101,51 @@ const technicians = (() => {
       return;
     }
 
+    // La API real (technicians.controller.js / findNearbyTechnicians) usa
+    // name, rating_avg, is_available, description, specialties, distance_km
+    // y coverage_radius_km — nunca nombre/rating/disponible/descripcion/
+    // especialidades/distancia/zonaCobertura. Con esos nombres antiguos
+    // cada tarjeta de técnico salía con el nombre vacío, 0 estrellas y
+    // "Ocupado" siempre (t.disponible undefined es falsy), así que ningún
+    // técnico parecía disponible para solicitarle un servicio. No hay una
+    // columna de "zona" como texto, solo un radio de cobertura en km.
     grid.innerHTML = techList.map((t, i) => {
-      const initials = (t.nombre || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-      const hue = ((t.nombre || '').charCodeAt(0) * 37) % 360;
+      const name = t.name || 'Técnico';
+      const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const hue = (name.charCodeAt(0) * 37) % 360;
+      const available = !!t.is_available;
       return `
-        <div class="tech-card glass-card animate-on-scroll" style="animation-delay:${i * 0.08}s" data-id="${t._id || t.id}">
+        <div class="tech-card glass-card animate-on-scroll" style="animation-delay:${i * 0.08}s" data-id="${t.id}">
           <div class="tech-card-header">
             <div class="tech-avatar" style="background:hsl(${hue},70%,45%)">
               <span>${initials}</span>
             </div>
             <div class="tech-info">
-              <h3 class="tech-name">${t.nombre}</h3>
+              <h3 class="tech-name">${name}</h3>
               <div class="tech-rating">
-                ${renderStars(t.rating || 0)}
-                <span class="rating-value">${(t.rating || 0).toFixed(1)}</span>
-                <span class="rating-count">(${t.totalReviews || 0} reseñas)</span>
+                ${renderStars(t.rating_avg || 0)}
+                <span class="rating-value">${(t.rating_avg || 0).toFixed(1)}</span>
+                <span class="rating-count">(${t.total_services || 0} servicios)</span>
               </div>
             </div>
-            <span class="availability-badge ${t.disponible ? 'available' : 'unavailable'}">
-              <i class="fas ${t.disponible ? 'fa-check-circle' : 'fa-clock'}"></i>
-              ${t.disponible ? 'Disponible' : 'Ocupado'}
+            <span class="availability-badge ${available ? 'available' : 'unavailable'}">
+              <i class="fas ${available ? 'fa-check-circle' : 'fa-clock'}"></i>
+              ${available ? 'Disponible' : 'Ocupado'}
             </span>
           </div>
 
-          <p class="tech-description">${t.descripcion || ''}</p>
+          <p class="tech-description">${t.description || ''}</p>
 
           <div class="tech-specialties">
-            ${(t.especialidades || []).map(s => `<span class="specialty-tag">${s}</span>`).join('')}
+            ${(t.specialties || []).map(s => `<span class="specialty-tag">${s}</span>`).join('')}
           </div>
 
           <div class="tech-card-footer">
             <div class="tech-meta">
-              ${t.distancia != null ? `<span class="tech-distance"><i class="fas fa-route"></i> ${t.distancia.toFixed(1)} km</span>` : ''}
-              <span class="tech-zone"><i class="fas fa-map-marker-alt"></i> ${t.zonaCobertura || 'N/A'}</span>
+              ${t.distance_km != null ? `<span class="tech-distance"><i class="fas fa-route"></i> ${t.distance_km.toFixed(1)} km</span>` : ''}
+              <span class="tech-zone"><i class="fas fa-map-marker-alt"></i> ${t.coverage_radius_km ? `Cobertura ${t.coverage_radius_km} km` : 'N/A'}</span>
             </div>
-            <button class="btn btn-primary btn-sm tech-request-btn" data-id="${t._id || t.id}" ${!t.disponible ? 'disabled' : ''}>
+            <button class="btn btn-primary btn-sm tech-request-btn" data-id="${t.id}" ${!available ? 'disabled' : ''}>
               <i class="fas fa-paper-plane"></i> Solicitar Servicio
             </button>
           </div>
