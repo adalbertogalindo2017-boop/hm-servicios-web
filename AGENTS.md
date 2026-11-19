@@ -12,8 +12,8 @@
 |---------|--------|
 | `npm run dev` | Dev server with `node --watch` on port 3000 |
 | `npm start` | Production start |
-| `npm test` | Runs `node tests/api.test.js` (skeleton, no real tests) |
-| `npm run setup` | Copies assets via `scripts/copy-assets.js` (hardcoded source path) |
+| `npm test` | Runs `node tests/api.test.js` (real assertions: geolocation, helpers, DB seed/search; does NOT cover the auth/validation/requests controllers) |
+| `npm run setup` | Verifies the landing-page asset exists (`scripts/copy-assets.js`) — it's already committed to the repo, so this is just a sanity check now |
 
 **Order:** `npm run setup` → `npm run dev`
 
@@ -40,8 +40,8 @@ public/
   index.html         — SPA shell, script order: api.js → auth.js → services.js → technicians.js → payments.js → dashboard.js → app.js
   js/                — vanilla JS SPA modules
   css/styles.css
-HM-Sistema/          — standalone admin dashboard (HTML/CSS/JS, not served by Express)
-tests/api.test.js    — skeleton only
+HM-Sistema/          — unused admin dashboard prototype (HTML/CSS/JS, not served by Express — see HM-Sistema/README.md)
+tests/api.test.js    — real assertions, limited coverage (see Commands table)
 ```
 
 ## API endpoints
@@ -61,10 +61,13 @@ All under `/api/`: `/auth`, `/services`, `/technicians` (includes `/nearby`), `/
 | Client | ana.morales@email.com | Cliente123! |
 
 ## Quirks
-- **No linter/formatter config** files exist on disk (only described in docs/04-programacion.md as intended, not enforced)
-- **No `.gitignore`** — be careful not to commit `data/`, `.env`, `node_modules/`
-- `HM-Sistema/` is a separate standalone static dashboard — not wired into the Express app
-- `scripts/copy-assets.js` has a hardcoded absolute source path — will fail if run outside original machine; only copies a PNG
+- **PAGOS SIMULADOS**: `payments.controller.js` no está conectado a ninguna pasarela de pago real (Wompi/PayU/Mercado Pago/Stripe, etc.). Solo registra el pago como `completed` en la base de datos y reparte la comisión — no mueve dinero real. Hay que integrar una pasarela real antes de cobrar a clientes de verdad.
+- **No linter/formatter config** files exist on disk (only described in docs/04-programacion.md as intended, not enforced) — adding one is on the maintenance backlog.
+- `.gitignore` exists and covers `node_modules/`, `data/`, `.env`, `.vercel` — no issue here.
+- `HM-Sistema/` is a separate standalone static dashboard prototype (HTML/CSS/JS) — **not wired into the Express app**. See `HM-Sistema/README.md` for details. The real admin panel is `public/js/dashboard.js` (rendered inside the main SPA).
+- `scripts/copy-assets.js` used to copy `landing-page-mockup.png` from a hardcoded Windows absolute path that only existed on the original dev's machine (always failed elsewhere). The asset is already committed in `public/img/` and `docs/assets/`, so the script now just verifies both are present instead of trying to copy from anywhere.
+- `server/routes/auth.routes.js` wires `registerRules`/`loginRules`/`forgotPasswordRules` (from `validation.js`) to `/register`, `/login`, `/forgot-password`. Registration requires a password with min. 8 chars, upper/lower/digit/symbol — matches `public/js/auth.js`'s client-side copy, keep both in sync if this changes.
+- Self-service password recovery (`POST /auth/forgot-password`) verifies identity by matching the registered email AND phone (no email provider is configured in this project) and sets the new password directly in the same call. To switch to a real "email link" flow, add an email provider (Resend/SendGrid/SMTP) with its own credentials and replace this endpoint.
 - DB seed only runs when `users` table is empty (safe to delete `data/hm_servicios.db` to reset locally; against Turso, drop the tables instead)
 - `db.prepare(sql).get/.all/.run()` and `db.transaction(fn)()` are all **async** now — every call site must `await`. The transaction shim uses `AsyncLocalStorage` so `db.prepare(...).run()` calls made inside a `db.transaction(async () => {...})` closure automatically route to that same libSQL transaction.
 - `undefined` bind params (an optional body field the client didn't send) are normalized to `null` inside the shim before hitting `@libsql/client`, which otherwise throws on `undefined`.

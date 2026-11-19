@@ -1,6 +1,12 @@
 const { db } = require('../config/database');
 const { generateTransactionId } = require('../utils/helpers');
 
+// ⚠️ PAGOS SIMULADOS: este controlador NO está conectado a ninguna
+// pasarela de pago real (no hay integración con Wompi, PayU, Mercado Pago,
+// Stripe, etc.). "processPayment" solo registra el pago como 'completed'
+// en la base de datos y reparte la comisión — no mueve dinero real ni
+// cobra ninguna tarjeta. Antes de usar esto en producción con clientes
+// reales hay que integrar una pasarela de pago de verdad.
 exports.processPayment = async (req, res) => {
     try {
         const { service_request_id, payment_method, amount } = req.body;
