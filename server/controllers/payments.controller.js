@@ -65,10 +65,31 @@ exports.getHistory = async (req, res) => {
 
 exports.getPaymentDetail = async (req, res) => {
     try {
-        const payment = await db.prepare('SELECT * FROM payments WHERE id = ?').get(req.params.id);
-        // Authorization check omitted for brevity
+        // Antes esta consulta no verificaba dueño: cualquier usuario logueado
+        // podía ver el pago de cualquier otra persona (monto, comisión, etc.)
+        // solo cambiando el id en la URL. Ahora se hace join con
+        // service_requests para confirmar que el pago pertenece al cliente o
+        // al técnico que lo pide; un admin puede ver cualquiera.
+        const payment = await db.prepare(`
+            SELECT p.*
+            FROM payments p
+            JOIN service_requests sr ON p.service_request_id = sr.id
+            WHERE p.id = ?
+        `).get(req.params.id);
+
+        if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+
+        if (req.user.role !== 'admin') {
+            const owned = await db.prepare(`
+                SELECT 1 FROM service_requests
+                WHERE id = ? AND (client_id = ? OR technician_id = ?)
+            `).get(payment.service_request_id, req.user.id, req.user.id);
+            if (!owned) return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+
         res.json({ success: true, data: payment });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
